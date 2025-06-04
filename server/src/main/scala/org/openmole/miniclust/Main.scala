@@ -1,6 +1,5 @@
 package org.openmole.miniclust
 
-import ox.*
 import sttp.model.MediaType
 import sttp.shared.*
 import sttp.tapir.server.netty.sync.*
@@ -9,7 +8,12 @@ import sttp.tapir.*
 import sttp.tapir.server.*
 import java.nio.file.Paths
 
-object Main extends OxApp.Simple:
+
+case class Config(
+  port: Int = 8080
+)
+
+@main def run =
 
   val staticPath = new java.io.File("server/target/frontend").getAbsolutePath
 
@@ -31,8 +35,8 @@ object Main extends OxApp.Simple:
       )
     )
 
-  def run(using Ox): Unit =
-    val port = sys.env.get("HTTP_PORT").flatMap(_.toIntOption).getOrElse(8080)
+  def run: Unit =
+    val config = Config()
 
     val indexEndpoint: ServerEndpoint[Any, Identity] =
       endpoint.get
@@ -47,7 +51,7 @@ object Main extends OxApp.Simple:
 
     val binding =
       NettySyncServer()
-        .port(port)
+        .port(config.port)
         .addEndpoints(List(indexEndpoint, staticFrontend))
         .addEndpoints(Endpoints.all)
         .startAndWait()

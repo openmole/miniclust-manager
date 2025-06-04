@@ -1,6 +1,7 @@
 package org.openmole.miniclust
 
 import io.circe.generic.auto.*
+import miniclust.manager.EndpointsAPI
 import org.openmole.miniclust.Library.*
 import sttp.shared.Identity
 import sttp.tapir.*

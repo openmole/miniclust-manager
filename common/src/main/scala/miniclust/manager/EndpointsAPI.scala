@@ -1,4 +1,4 @@
-package org.openmole.miniclust
+package miniclust.manager
 
 import sttp.tapir.*
 

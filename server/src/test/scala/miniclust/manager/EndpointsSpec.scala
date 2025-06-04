@@ -1,4 +1,4 @@
-package org.openmole.miniclust
+package miniclust.manager
 
 import io.circe.generic.auto.*
 import org.openmole.miniclust.Endpoints.{*, given}

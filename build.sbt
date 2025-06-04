@@ -1,4 +1,4 @@
-val tapirVersion = "1.11.15"
+val tapirVersion = "1.11.33"
 
 def commonSettings = Seq(
   scalaVersion := "3.7.0",
@@ -38,12 +38,13 @@ lazy val server = (project in file("server")).settings(
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % tapirVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
+      "com.typesafe.slick" %% "slick" % "3.6.1",
       "ch.qos.logback" % "logback-classic" % "1.5.16",
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test
-    )
+    ),
   )
 ) dependsOn(common)
 
