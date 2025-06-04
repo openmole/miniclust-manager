@@ -1,4 +1,4 @@
-package org.openmole.miniclust
+package miniclust.manager
 
 import sttp.model.MediaType
 import sttp.shared.*
@@ -9,9 +9,7 @@ import sttp.tapir.server.*
 import java.nio.file.Paths
 
 
-case class Config(
-  port: Int = 8080
-)
+case class Config(port: Int = 8080)
 
 @main def run =
 

@@ -39,8 +39,11 @@ lazy val server = (project in file("server")).settings(
       "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
       "com.typesafe.slick" %% "slick" % "3.6.1",
+      "com.h2database" % "h2" % "2.3.232",
       "ch.qos.logback" % "logback-classic" % "1.5.16",
       "com.lihaoyi" %% "scalatags" % "0.13.1",
+      "ch.epfl.lamp" %% "gears" % "0.2.0",
+      "com.github.pathikrit" %% "better-files" % "3.9.2",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test

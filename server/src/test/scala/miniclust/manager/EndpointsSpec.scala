@@ -1,8 +1,6 @@
 package miniclust.manager
 
 import io.circe.generic.auto.*
-import org.openmole.miniclust.Endpoints.{*, given}
-import org.openmole.miniclust.Library.*
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
