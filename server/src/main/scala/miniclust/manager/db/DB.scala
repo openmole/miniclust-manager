@@ -62,7 +62,7 @@ class DB(dbFile: File):
 
   def upgrades: Seq[Upgrade] = Seq(DBSchemaV1.upgrade)
 
-  def initDB()(using Async) =
+  def initDB() =
     runTransaction:
       def createDBInfo: DBIO[Int] =
         for

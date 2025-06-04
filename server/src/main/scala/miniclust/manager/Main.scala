@@ -7,9 +7,11 @@ import sttp.tapir.files.*
 import sttp.tapir.*
 import sttp.tapir.server.*
 import java.nio.file.Paths
+import better.files.*
 
-
-case class Config(port: Int = 8080)
+case class Config(
+  port: Int = 8080,
+  location: File = File(System.getProperty("user.home"), ".miniclust"))
 
 @main def run =
 
@@ -33,23 +35,25 @@ case class Config(port: Int = 8080)
       )
     )
 
-  def run: Unit =
-    val config = Config()
+  val config = Config()
 
-    val indexEndpoint: ServerEndpoint[Any, Identity] =
-      endpoint.get
-        .in("")
-        .out(htmlBodyUtf8)
-        .serverLogicSuccess:  _ =>
-          someHtml("run();").render
+  val database = db.DB(config.location / "db")
+  database.initDB()
 
-    val staticFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
+  val indexEndpoint: ServerEndpoint[Any, Identity] =
+    endpoint.get
+      .in("")
+      .out(htmlBodyUtf8)
+      .serverLogicSuccess:  _ =>
+        someHtml("run();").render
 
-    //directory = Paths.get("target/frontend")
+  val staticFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
 
-    val binding =
-      NettySyncServer()
-        .port(config.port)
-        .addEndpoints(List(indexEndpoint, staticFrontend))
-        .addEndpoints(Endpoints.all)
-        .startAndWait()
+  //directory = Paths.get("target/frontend")
+
+  NettySyncServer()
+    .port(config.port)
+    .addEndpoints(List(indexEndpoint, staticFrontend))
+    .addEndpoints(Endpoints.all)
+    .startAndWait()
+

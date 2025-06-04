@@ -44,6 +44,7 @@ lazy val server = (project in file("server")).settings(
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
+      "org.openmole.miniclust" %% "message" % "1.0",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test
