@@ -32,3 +32,11 @@ object EndpointsAPI:
       .out(header[String](HeaderNames.SetCookie))
       .out(stringBody)
 
+
+  val testEndpoint: Endpoint[String, Unit, String, String, Any] =
+    endpoint.get
+      .in("test")
+      .securityIn(header[String](HeaderNames.Cookie))
+      .out(stringBody)
+      .errorOut(stringBody)
+

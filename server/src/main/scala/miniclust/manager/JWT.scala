@@ -29,5 +29,5 @@ object JWT:
 
   def decode(token: String)(using secret: Secret) =
     parser.parse(Jwt.decodeRawAll(token, secret, Seq(algorithm)).get._2).toTry.get.as[Token].toTry.get
-
+  
   case class Token(id: String)
