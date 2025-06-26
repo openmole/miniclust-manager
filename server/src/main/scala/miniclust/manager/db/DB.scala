@@ -25,15 +25,19 @@ import slick.jdbc.H2Profile.api.*
 import gears.async.*
 import gears.async.ScalaConverters.*
 import gears.async.default.given
-
 import miniclust.manager.Tool.given_ExecutionContext
 
 import java.sql.DriverManager
 import java.util.logging.Logger
-
 import better.files.*
+import miniclust.manager.Tool
+
+import java.util.UUID
 
 case class Upgrade(upgrade: DBIO[Unit], version: Int)
+
+object DB:
+  export DBSchemaV1.*
 
 class DB(dbFile: File):
   import DBSchemaV1.*
@@ -47,14 +51,43 @@ class DB(dbFile: File):
   def runTransaction[E <: Effect, T](action: DBIOAction[T, NoStream, E]): T =
     Async.blocking:
       db.run(action.transactionally).asGears.await
-  
+
+  def lastId: Option[String] =
+    runTransaction:
+      accountingTable.sortBy(_.id.desc).map(_.id).result.headOption
+
+  def addAccounting(a: Accounting) =
+    runTransaction:
+      accountingTable += a
+
+  def getOrCreateUser(login: String): User =
+    runTransaction:
+      val insert =
+        val u =
+          User(
+            id = UUID.randomUUID().toString,
+            name = null,
+            firstName = null,
+            login = login,
+            email = null,
+            emailStatus = EmailStatus.Unchecked,
+            institution = null,
+            created = Tool.now
+          )
+        for
+          _ <- userTable += u
+        yield u
+
+      for
+        u <- userTable.filter(u => u.login === login).result
+        ru <- if u.isEmpty then insert else DBIO.successful(u.head)
+      yield ru
 
   object DatabaseInfo:
     case class Data(version: Int)
 
   class DatabaseInfo(tag: Tag) extends Table[DatabaseInfo.Data](tag, "DB_INFO"):
     def version = column[Int]("VERSION")
-
     def * = version.mapTo[DatabaseInfo.Data]
 
   val databaseInfoTable = TableQuery[DatabaseInfo]

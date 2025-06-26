@@ -40,11 +40,15 @@ lazy val server = (project in file("server")).settings(
       "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
       "com.typesafe.slick" %% "slick" % "3.6.1",
       "com.h2database" % "h2" % "2.3.232",
-      "ch.qos.logback" % "logback-classic" % "1.5.16",
+      "org.slf4j" % "slf4j-nop" % "2.0.17",
+      "io.circe" %% "circe-generic" % "0.14.14",
+      //"ch.qos.logback" % "logback-classic" % "1.5.16",
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
-      "org.openmole.miniclust" %% "message" % "1.0",
+      "org.openmole.miniclust" %% "message" % "1.1-SNAPSHOT",
+      "com.github.jwt-scala" %% "jwt-core" % "11.0.0",
+      "com.lihaoyi" %% "upickle" % "4.1.0",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test
@@ -70,6 +74,7 @@ lazy val frontend = (project in file("frontend"))
     name := "frontend",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % "1.11.29",
+      "com.raquo" %%% "laminar" % "17.2.1",
       //"io.github.cquiroz" %%% "scala-java-time" % "2.2.0",
       "com.softwaremill.sttp.client3" %%% "circe" % "3.10.2"
     )

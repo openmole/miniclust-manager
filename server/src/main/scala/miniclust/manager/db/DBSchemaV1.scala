@@ -20,22 +20,94 @@ package miniclust.manager.db
 import slick.*
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api.*
+import miniclust.manager.Tool
 
 object DBSchemaV1:
   def dbVersion = 1
 
   case class Accounting(
-    duration: Int
+    id: String,
+    duration: Long,
+    bucket: String,
+    key: String
   )
 
-
   class AccountingTable(tag: Tag) extends Table[Accounting](tag, "ACCOUNTING"):
-    def duration = column[Int]("DURATION")
-    def * = (duration).mapTo[Accounting]
+    def duration = column[Long]("DURATION")
+    def id = column[String]("ID", O.PrimaryKey)
+    def bucket = column[String]("BUCKET")
+    def key = column[String]("KEY")
+
+    def * = (id, duration, bucket, key).mapTo[Accounting]
 
   val accountingTable = TableQuery[AccountingTable]
 
-//  given BaseColumnType[EmailStatus] = MappedColumnType.base[EmailStatus, Int] (
+  type Email = String
+  type Institution = String
+  type Password = String
+
+  object EmailStatus:
+    def hasBeenChecked(s: EmailStatus) = s == EmailStatus.Checked
+
+  enum EmailStatus:
+    case Unchecked, Checked
+
+  given BaseColumnType[EmailStatus] = MappedColumnType.base[EmailStatus, Int](
+    s => s.ordinal,
+    v => EmailStatus.fromOrdinal(v)
+  )
+
+  case class User(
+    id: String,
+    name: String,
+    firstName: String,
+    login: String,
+    email: Email,
+    institution: Institution,
+    emailStatus: EmailStatus,
+    created: Long)
+
+  class UserTable(tag: Tag) extends Table[User](tag, "USER"):
+    def id = column[String]("ID", O.PrimaryKey)
+    def name = column[String]("NAME")
+    def firstName = column[String]("FIRST_NAME")
+    def login = column[String]("LOGIN")
+    def email = column[String]("EMAIL")
+    def institution = column[String]("INSTITUTION")
+    def emailStatus = column[EmailStatus]("EMAIL_STATUS")
+    def created = column[Long]("CREATED")
+
+    def * = (id, name, firstName, login, email, institution, emailStatus, created).mapTo[User]
+
+  val userTable = TableQuery[UserTable]
+
+  case class RegisterUser(
+    id: String,
+    name: String,
+    firstName: String,
+    login: String,
+    email: Email,
+    password: Password,
+    institution: Institution,
+    created: Long = Tool.now,
+    emailStatus: EmailStatus = EmailStatus.Unchecked)
+
+  class RegisterUserTable(tag: Tag) extends Table[RegisterUser](tag, "REGISTER_USER"):
+    def id = column[String]("ID", O.PrimaryKey)
+    def name = column[String]("NAME")
+    def firstName = column[String]("FIRST_NAME")
+    def login = column[String]("LOGIN")
+    def email = column[String]("EMAIL")
+    def password = column[String]("PASSWORD")
+    def institution = column[String]("INSTITUTION")
+    def created = column[Long]("CREATED")
+    def emailStatus = column[Int]("EMAIL_STATUS")
+
+    def * = (id, name, firstName, login, email, password, institution, created, emailStatus).mapTo[RegisterUser]
+
+  val registerUserTable = TableQuery[RegisterUserTable]
+
+  //  given BaseColumnType[EmailStatus] = MappedColumnType.base[EmailStatus, Int] (
 //    s => s.ordinal,
 //    v => EmailStatus.fromOrdinal(v)
 //  )
@@ -158,7 +230,7 @@ object DBSchemaV1:
 
 
   def upgrade =
-    val schema = accountingTable.schema //++ registerUserTable.schema
+    val schema = accountingTable.schema ++ registerUserTable.schema ++ userTable.schema
     def upgrade = schema.createIfNotExists
     Upgrade(upgrade = upgrade, version = dbVersion)
 

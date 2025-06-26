@@ -1,6 +1,8 @@
 package miniclust.manager
 
 import sttp.tapir.*
+import sttp.model.*
+import sttp.tapir.generic.auto.*
 
 /*
  * Copyright (C) 2025 Romain Reuillon
@@ -21,8 +23,12 @@ import sttp.tapir.*
 
 object EndpointsAPI:
 
-  case class User(name: String) extends AnyVal
-  val helloEndpoint: PublicEndpoint[User, Unit, String, Any] = endpoint.get
-    .in("hello")
-    .in(query[User]("name"))
-    .out(stringBody)
+  case class LoginForm(username: String, password: String)
+  val loginEndpoint: PublicEndpoint[LoginForm, String, (String, String), Any] =
+    endpoint.post
+      .in("login")
+      .in(formBody[LoginForm])
+      .errorOut(stringBody)
+      .out(header[String](HeaderNames.SetCookie))
+      .out(stringBody)
+

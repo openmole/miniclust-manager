@@ -6,14 +6,57 @@ import sttp.tapir.server.netty.sync.*
 import sttp.tapir.files.*
 import sttp.tapir.*
 import sttp.tapir.server.*
+
 import java.nio.file.Paths
 import better.files.*
+import io.circe.yaml
+import miniclust.message.{MiniClust, Minio}
+import io.circe.generic.auto.*
 
-case class Config(
-  port: Int = 8080,
-  location: File = File(System.getProperty("user.home"), ".miniclust"))
 
-@main def run =
+
+object Configuration:
+  import io.circe.derivation
+  given derivation.Configuration = derivation.Configuration.default.withDefaults.withoutStrictDecoding.withKebabCaseMemberNames.withKebabCaseConstructorNames
+
+  def read(file: File) =
+    val configuration = yaml.parser.parse(file.contentAsString).toTry.get.as[Configuration].toTry.get
+
+    val minio =
+      miniclust.message.Minio:
+        miniclust.message.Minio.Server(
+          url = configuration.minio.url,
+          user = configuration.minio.key,
+          password = configuration.minio.secret,
+          timeout = configuration.minio.timeout,
+          insecure = configuration.minio.insecure
+        )
+
+    (
+      configuration = configuration,
+      minio = minio,
+      directory = File(configuration.location.getOrElse(System.getProperty("user.home") + "/.miniclust")),
+      port = configuration.port.getOrElse(8080),
+      jwtSecret = JWT.Secret(configuration.jwt.secret)
+    )
+
+  case class MinioConfiguration(
+    url: String,
+    key: String,
+    secret: String,
+    timeout: Int = 20,
+    insecure: Boolean = false) derives derivation.ConfiguredCodec
+
+  case class JWTConfiguration(secret: String) derives derivation.ConfiguredCodec
+
+case class Configuration(
+  port: Option[Int] = None,
+  location: Option[String] = None,
+  minio: Configuration.MinioConfiguration,
+  jwt: Configuration.JWTConfiguration)
+
+@main def run(configFile: String) =
+  java.util.logging.Logger.getGlobal.setLevel(java.util.logging.Level.INFO)
 
   val staticPath = new java.io.File("server/target/frontend").getAbsolutePath
 
@@ -35,10 +78,13 @@ case class Config(
       )
     )
 
-  val config = Config()
+  val config = Configuration.read(File(configFile))
 
-  val database = db.DB(config.location / "db")
-  database.initDB()
+  val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName)
+
+//  val database = db.DB(config.directory)
+//  database.initDB()
+
 
   val indexEndpoint: ServerEndpoint[Any, Identity] =
     endpoint.get
@@ -51,9 +97,11 @@ case class Config(
 
   //directory = Paths.get("target/frontend")
 
+  val endpoints = Endpoints(config.minio, config.jwtSecret)
+
   NettySyncServer()
     .port(config.port)
     .addEndpoints(List(indexEndpoint, staticFrontend))
-    .addEndpoints(Endpoints.all)
+    .addEndpoints(endpoints.all)
     .startAndWait()
 
