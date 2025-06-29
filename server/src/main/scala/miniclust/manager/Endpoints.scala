@@ -31,7 +31,7 @@ class Endpoints(minio: Minio, jwtSecret: JWT.Secret):
       Tool.mc.authenticate(minio, l.username, l.password) match
         case Tool.mc.AuthenticationResult.Success(u) =>
           val token = JWT.encode(JWT.Token(l.username))
-          Right(("", token))
+          Right((s"jwt=$token", ""))
         case Tool.mc.AuthenticationResult.Disabled(u) => Left("User account disabled")
         case Tool.mc.AuthenticationResult.Failed => Left("Incorrect login/password")
 

@@ -56,7 +56,7 @@ lazy val server = (project in file("server")).settings(
   )
 ) dependsOn(common)
 
-lazy val common = (project in file("common")).settings(
+lazy val common = (project in file("common")).enablePlugins(ScalaJSPlugin).settings(
   commonSettings,
   Seq(
     name := "common",
@@ -69,6 +69,7 @@ lazy val common = (project in file("common")).settings(
 
 lazy val frontend = (project in file("frontend"))
   .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
     commonSettings,
     name := "frontend",
@@ -77,7 +78,8 @@ lazy val frontend = (project in file("frontend"))
       "com.raquo" %%% "laminar" % "17.2.1",
       //"io.github.cquiroz" %%% "scala-java-time" % "2.2.0",
       "com.softwaremill.sttp.client3" %%% "circe" % "3.10.2"
-    )
+    ),
+    externalNpm := baseDirectory.value
   )
   .dependsOn(common)
 

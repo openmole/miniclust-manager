@@ -68,8 +68,9 @@ case class Configuration(
         meta(httpEquiv := "Content-Type", content := "text/html; charset=UTF-8"),
         link(rel := "icon", href := "img/favicon.svg", `type` := "img/svg+xml"),
         link(rel := "stylesheet", `type` := "text/css", href := "css/style-connect.css"),
-        link(rel := "stylesheet", `type` := "text/css", href := "css/bootstrap.css"),
+        link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"),
         link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"),
+        script(`type` := "text/javascript", src := "https://cdn.jsdelivr.net/npm/bootstrap.native@5.1.5/dist/bootstrap-native.min.js"),
         Seq(s"main.js").map(jf => script(`type` := "text/javascript", src := s"js/$jf "))
       ),
       body(
@@ -91,7 +92,7 @@ case class Configuration(
       .in("")
       .out(htmlBodyUtf8)
       .serverLogicSuccess:  _ =>
-        someHtml("run();").render
+        someHtml("connection(null);").render
 
   val staticFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
 
