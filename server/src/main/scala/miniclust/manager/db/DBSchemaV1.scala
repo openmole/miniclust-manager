@@ -46,66 +46,57 @@ object DBSchemaV1:
   type Institution = String
   type Password = String
 
-  object EmailStatus:
-    def hasBeenChecked(s: EmailStatus) = s == EmailStatus.Checked
+  object ManagerUser:
+    object Role:
+      given BaseColumnType[Role] = MappedColumnType.base[Role, Int](
+        s => s.ordinal,
+        v => Role.fromOrdinal(v)
+      )
 
-  enum EmailStatus:
-    case Unchecked, Checked
+    enum Role:
+      case Admin, Manager
 
-  given BaseColumnType[EmailStatus] = MappedColumnType.base[EmailStatus, Int](
-    s => s.ordinal,
-    v => EmailStatus.fromOrdinal(v)
-  )
-
-  case class User(
+  case class ManagerUser(
     id: String,
     name: String,
     firstName: String,
-    login: String,
-    email: Email,
-    institution: Institution,
-    emailStatus: EmailStatus,
-    created: Long)
-
-  class UserTable(tag: Tag) extends Table[User](tag, "USER"):
-    def id = column[String]("ID", O.PrimaryKey)
-    def name = column[String]("NAME")
-    def firstName = column[String]("FIRST_NAME")
-    def login = column[String]("LOGIN")
-    def email = column[String]("EMAIL")
-    def institution = column[String]("INSTITUTION")
-    def emailStatus = column[EmailStatus]("EMAIL_STATUS")
-    def created = column[Long]("CREATED")
-
-    def * = (id, name, firstName, login, email, institution, emailStatus, created).mapTo[User]
-
-  val userTable = TableQuery[UserTable]
-
-  case class RegisterUser(
-    id: String,
-    name: String,
-    firstName: String,
-    login: String,
     email: Email,
     password: Password,
     institution: Institution,
-    created: Long = Tool.now,
-    emailStatus: EmailStatus = EmailStatus.Unchecked)
+    created: Long,
+    role: ManagerUser.Role)
 
-  class RegisterUserTable(tag: Tag) extends Table[RegisterUser](tag, "REGISTER_USER"):
-    def id = column[String]("ID", O.PrimaryKey)
+  class ManagerUserTable(tag: Tag) extends Table[ManagerUser](tag, "MANAGER_USER"):
+    def id = column[String]("ID")
     def name = column[String]("NAME")
     def firstName = column[String]("FIRST_NAME")
-    def login = column[String]("LOGIN")
     def email = column[String]("EMAIL")
-    def password = column[String]("PASSWORD")
+    def password = column[Password]("PASSWORD")
     def institution = column[String]("INSTITUTION")
     def created = column[Long]("CREATED")
-    def emailStatus = column[Int]("EMAIL_STATUS")
+    def role = column[ManagerUser.Role]("ROLE")
 
-    def * = (id, name, firstName, login, email, password, institution, created, emailStatus).mapTo[RegisterUser]
+    def * = (id, name, firstName, email, password, institution, created, role).mapTo[ManagerUser]
 
-  val registerUserTable = TableQuery[RegisterUserTable]
+  val managerUserTable = TableQuery[ManagerUserTable]
+
+//  case class MiniClustUser(
+//    name: String,
+//    firstName: String,
+//    email: Email,
+//    institution: Institution,
+//    emailStatus: EmailStatus = EmailStatus.Unchecked)
+//
+//  class RegisterUserTable(tag: Tag) extends Table[MiniClustUser](tag, "REGISTER_USER"):
+//    def name = column[String]("NAME")
+//    def firstName = column[String]("FIRST_NAME")
+//    def email = column[String]("EMAIL")
+//    def institution = column[String]("INSTITUTION")
+//    def emailStatus = column[Int]("EMAIL_STATUS")
+//
+//    def * = (name, firstName, email, institution, emailStatus).mapTo[MiniClustUser]
+//
+//  val registerUserTable = TableQuery[RegisterUserTable]
 
   //  given BaseColumnType[EmailStatus] = MappedColumnType.base[EmailStatus, Int] (
 //    s => s.ordinal,
@@ -230,7 +221,7 @@ object DBSchemaV1:
 
 
   def upgrade =
-    val schema = accountingTable.schema ++ registerUserTable.schema ++ userTable.schema
+    val schema = accountingTable.schema ++ managerUserTable.schema
     def upgrade = schema.createIfNotExists
     Upgrade(upgrade = upgrade, version = dbVersion)
 

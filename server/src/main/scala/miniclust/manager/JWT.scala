@@ -9,14 +9,15 @@ import io.circe.generic.auto.*
 object JWT:
   given clock: Clock = Clock.systemUTC
 
-  object Json:
-    object key:
-      val id = "id"
-
   object Secret:
+    given Conversion[Secret, String] = identity
     def apply(s: String): Secret = s
 
   opaque type Secret = String
+  
+  object Json:
+    object key:
+      val id = "id"
 
   def algorithm = JwtAlgorithm.HS256
   def oneMounth = 60 * 60 * 24 * 30
@@ -28,6 +29,8 @@ object JWT:
     Jwt.encode(JwtClaim(id.asJson.noSpaces).issuedNow.expiresIn(oneMounth), secret, algorithm)
 
   def decode(token: String)(using secret: Secret) =
-    parser.parse(Jwt.decodeRawAll(token, secret, Seq(algorithm)).get._2).toTry.get.as[Token].toTry.get
+    parser.parse:
+      Jwt.decodeRawAll(token, secret, Seq(algorithm)).get._2
+    .toTry.get.as[Token].toTry.get
   
   case class Token(id: String)

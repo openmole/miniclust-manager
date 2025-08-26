@@ -3,6 +3,8 @@ package miniclust.manager
 import sttp.tapir.*
 import sttp.model.*
 import sttp.tapir.generic.auto.*
+import sttp.tapir.json.circe.*
+import io.circe.generic.auto.*
 
 /*
  * Copyright (C) 2025 Romain Reuillon
@@ -23,7 +25,10 @@ import sttp.tapir.generic.auto.*
 
 object EndpointsAPI:
 
+  type SecureEndpoint[I, O] = Endpoint[Option[String], I, String, O, Any]
+
   case class LoginForm(username: String, password: String)
+
   val loginEndpoint: PublicEndpoint[LoginForm, String, (String, String), Any] =
     endpoint.post
       .in("login")
@@ -32,6 +37,33 @@ object EndpointsAPI:
       .out(header[String](HeaderNames.SetCookie))
       .out(stringBody)
 
+  val listUser: SecureEndpoint[Unit, Seq[MinioUser]] =
+    endpoint.post
+      .in("list-user")
+      .securityIn(cookie[Option[String]]("jwt"))
+      .out(jsonBody[Seq[MinioUser]])
+      .errorOut(stringBody)
+
+
+//  val userEndpoint: Endpoint[String, String, String, User, Any] =
+//    endpoint.get
+//      .in("user" / path[String]("login"))
+//      .securityIn(header[String](HeaderNames.Cookie))
+//      .out(jsonBody[User])
+//      .errorOut(stringBody)
+
+  case class RegisterUser(
+    name: String,
+    firstName: String,
+    email: String,
+    institution: String,
+    password: String)
+
+  val registerEndpoint: PublicEndpoint[RegisterUser, String, Unit, Any] =
+    endpoint.post
+      .in("login")
+      .in(formBody[RegisterUser])
+      .errorOut(stringBody)
 
   val testEndpoint: Endpoint[String, Unit, String, String, Any] =
     endpoint.get
@@ -40,3 +72,18 @@ object EndpointsAPI:
       .out(stringBody)
       .errorOut(stringBody)
 
+
+  object MinioUser:
+    enum Status:
+      case enabled, disabled
+
+  case class MinioUser(login: String, status: MinioUser.Status)
+
+  case class User(
+   name: String,
+   firstName: String,
+   login: String,
+   email: String,
+   institution: String,
+   emailStatus: String,
+   created: Long)

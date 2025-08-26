@@ -30,7 +30,8 @@ import miniclust.manager.Tool.given_ExecutionContext
 import java.sql.DriverManager
 import java.util.logging.Logger
 import better.files.*
-import miniclust.manager.Tool
+import miniclust.manager.db.DBSchemaV1.ManagerUser.Role
+import miniclust.manager.{Salt, Tool}
 
 import java.util.UUID
 
@@ -38,6 +39,8 @@ case class Upgrade(upgrade: DBIO[Unit], version: Int)
 
 object DB:
   export DBSchemaV1.*
+
+
 
 class DB(dbFile: File):
   import DBSchemaV1.*
@@ -60,28 +63,65 @@ class DB(dbFile: File):
     runTransaction:
       accountingTable += a
 
-  def getOrCreateUser(login: String): User =
-    runTransaction:
-      val insert =
-        val u =
-          User(
-            id = UUID.randomUUID().toString,
-            name = null,
-            firstName = null,
-            login = login,
-            email = null,
-            emailStatus = EmailStatus.Unchecked,
-            institution = null,
-            created = Tool.now
-          )
-        for
-          _ <- userTable += u
-        yield u
+  def salted(password: Password)(using salt: Salt) = Tool.hash(password, salt.value)
 
-      for
-        u <- userTable.filter(u => u.login === login).result
-        ru <- if u.isEmpty then insert else DBIO.successful(u.head)
-      yield ru
+  def userWithDefault(name: String, firstName: String, email: String, password: Password, institution: Institution, role: Role = Role.Manager, id: String = Tool.randomUUID) =
+    ManagerUser(
+      id = id,
+      name = name,
+      firstName = firstName,
+      email = email,
+      password = password,
+      institution = institution,
+      created = Tool.now,
+      role = role)
+
+
+  def autenticate(email: Email, password: Password)(using salt: Salt) =
+    val user: Option[ManagerUser] =
+      runTransaction:
+        managerUserTable.filter(u => u.email === email).result.headOption
+
+    user match
+      case None => Left("No user found")
+      case Some(u) =>
+        if u.password == Tool.hash(password, salt.value)
+        then Right(u)
+        else Left("Wrong password")
+
+  def addUser(user: DB.ManagerUser) =
+    runTransaction:
+      managerUserTable += user
+
+  def user(id: String) =
+    runTransaction:
+      managerUserTable.filter(_.id === id).result.headOption
+
+//  def getOrCreateUser(login: String): ManagerUser =
+//    runTransaction:
+//      val insert =
+//        val u =
+//          ManagerUser(
+//            name = null,
+//            firstName = null,
+//            login = login,
+//            email = null,
+//            emailStatus = EmailStatus.Unchecked,
+//            institution = null,
+//            created = Tool.now
+//          )
+//        for
+//          _ <- managerUserTable += u
+//        yield u
+//
+//      for
+//        u <- managerUserTable.filter(u => u.login === login).result
+//        ru <- if u.isEmpty then insert else DBIO.successful(u.head)
+//      yield ru
+//
+//  def addRegisterUser(user: MiniClustUser) =
+//    runTransaction:
+//      registerUserTable += user
 
   object DatabaseInfo:
     case class Data(version: Int)
@@ -92,10 +132,9 @@ class DB(dbFile: File):
 
   val databaseInfoTable = TableQuery[DatabaseInfo]
 
-
   def upgrades: Seq[Upgrade] = Seq(DBSchemaV1.upgrade)
 
-  def initDB() =
+  def initDB()(using Salt) =
     runTransaction:
       def createDBInfo: DBIO[Int] =
         for
@@ -125,3 +164,10 @@ class DB(dbFile: File):
         yield ()
 
       create
+
+    runTransaction:
+      val admin = userWithDefault("Admin", "Admin", "admin@miniclust.org", salted("admin"), "OpenMOLE", role = Role.Admin)
+      for
+        e <- managerUserTable.result
+        _ <- if e.isEmpty then managerUserTable += admin else DBIO.successful(())
+      yield ()

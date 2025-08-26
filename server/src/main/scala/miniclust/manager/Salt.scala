@@ -1,11 +1,5 @@
 package miniclust.manager
 
-
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
-import better.files.*
-import org.apache.commons.codec.digest.DigestUtils
-
 /*
  * Copyright (C) 2025 Romain Reuillon
  *
@@ -22,21 +16,11 @@ import org.apache.commons.codec.digest.DigestUtils
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- object Tool:
-   given ExecutionContext = ExecutionContext.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
-   def now = System.currentTimeMillis()
 
-   def withTmpDirectory[R]()(f: File => R) =
-     val dir = File.newTemporaryDirectory()
-     try f(dir)
-     finally dir.delete(true)
+object Salt:
+  def apply(s: String): Salt = s
+  
+  extension (s: Salt)
+   def value: String = s
 
-   def hash(v: String, salt: String) =
-     val shaHex: String = DigestUtils.sha256Hex(salt + v)
-     s"sha256:$shaHex"
-
-   def randomUUID = java.util.UUID.randomUUID().toString
-
-
-
+opaque type Salt = String

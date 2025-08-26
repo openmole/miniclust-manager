@@ -44,7 +44,6 @@ def page(initialForm: Form) =
   val displayedForm: Var[Form] = Var(initialForm)
 
   def signInForm(error: Option[String]) =
-
     val login = Var[String]("")
     val password = Var[String]("")
 
@@ -86,11 +85,17 @@ def page(initialForm: Form) =
 
 
   def userForm =
-    val req = SttpClientInterpreter().toSecureRequest(EndpointsAPI.testEndpoint, None)
-    div(
-      "youpi"
-//      child <-- Signal.fromFuture(req("")(()).send(backend)).map: r =>
-//        r.get.body.toString
+    table(cls := "table",
+      tr(Seq("login", "action").map(v => th(HTML.centerCell, v))),
+      tbody(
+        children <--
+          Signal.fromFuture(STTPInterpreter().toRequest(EndpointsAPI.listUser)(()), Seq()).map: users =>
+            users.map: u =>
+              tr(
+                td(u.login, HTML.centerCell),
+                td("test", HTML.centerCell)
+              )
+      )
     )
 
   val renderContent =

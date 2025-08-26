@@ -1,11 +1,3 @@
-package miniclust.manager
-
-
-import java.util.concurrent.Executors
-import scala.concurrent.ExecutionContext
-import better.files.*
-import org.apache.commons.codec.digest.DigestUtils
-
 /*
  * Copyright (C) 2025 Romain Reuillon
  *
@@ -22,21 +14,19 @@ import org.apache.commons.codec.digest.DigestUtils
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- object Tool:
-   given ExecutionContext = ExecutionContext.fromExecutor(Executors.newVirtualThreadPerTaskExecutor())
-   def now = System.currentTimeMillis()
-
-   def withTmpDirectory[R]()(f: File => R) =
-     val dir = File.newTemporaryDirectory()
-     try f(dir)
-     finally dir.delete(true)
-
-   def hash(v: String, salt: String) =
-     val shaHex: String = DigestUtils.sha256Hex(salt + v)
-     s"sha256:$shaHex"
-
-   def randomUUID = java.util.UUID.randomUUID().toString
 
 
+import sttp.tapir.client.sttp4.*
+import sttp.client4.*
+import sttp.tapir.Endpoint
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
+class STTPInterpreter:
+
+  lazy val sttpInterpreter = SttpClientInterpreter()
+  lazy val backend = DefaultFutureBackend()
+
+  def toRequest[I, E, O](e: Endpoint[Option[String], I, E, O, Any])(i: I): Future[O] =
+    sttpInterpreter.toSecureRequestThrowErrors(e, None).apply(None).apply(i).send(backend).map: r =>
+      r.body

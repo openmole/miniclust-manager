@@ -32,12 +32,17 @@ object Configuration:
           insecure = configuration.minio.insecure
         )
 
+    val directory = File(configuration.location.getOrElse(System.getProperty("user.home") + "/.miniclust"))
+    val database = db.DB(directory / "db")
+
     (
       configuration = configuration,
       minio = minio,
-      directory = File(configuration.location.getOrElse(System.getProperty("user.home") + "/.miniclust")),
+      directory = directory,
       port = configuration.port.getOrElse(8080),
-      jwtSecret = JWT.Secret(configuration.jwt.secret)
+      jwt = JWT.Secret(configuration.secret.jwt),
+      salt = Salt(configuration.secret.salt),
+      database = database
     )
 
   case class MinioConfiguration(
@@ -47,13 +52,20 @@ object Configuration:
     timeout: Int = 20,
     insecure: Boolean = false) derives derivation.ConfiguredCodec
 
-  case class JWTConfiguration(secret: String) derives derivation.ConfiguredCodec
+  case class MiniClustConfiguration(
+    userGroup: Seq[String] = Seq("user"),
+    computeGroup: Seq[String] = Seq("compute")) derives derivation.ConfiguredCodec
+
+  case class Secret(
+    jwt: String,
+    salt: String) derives derivation.ConfiguredCodec
 
 case class Configuration(
   port: Option[Int] = None,
   location: Option[String] = None,
   minio: Configuration.MinioConfiguration,
-  jwt: Configuration.JWTConfiguration)
+  miniclust: Configuration.MiniClustConfiguration,
+  secret: Configuration.Secret)
 
 @main def run(configFile: String) =
   java.util.logging.Logger.getGlobal.setLevel(java.util.logging.Level.INFO)
@@ -67,7 +79,7 @@ case class Configuration(
       head(
         meta(httpEquiv := "Content-Type", content := "text/html; charset=UTF-8"),
         link(rel := "icon", href := "img/favicon.svg", `type` := "img/svg+xml"),
-        link(rel := "stylesheet", `type` := "text/css", href := "css/style-connect.css"),
+        link(rel := "stylesheet", `type` := "text/css", href := "css/style.css"),
         link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"),
         link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"),
         script(`type` := "text/javascript", src := "https://cdn.jsdelivr.net/npm/bootstrap.native@5.1.5/dist/bootstrap-native.min.js"),
@@ -81,11 +93,12 @@ case class Configuration(
 
   val config = Configuration.read(File(configFile))
 
+  given Salt = config.salt
+  given JWT.Secret = config.jwt
+
+  config.database.initDB()
+
   val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName)
-
-//  val database = db.DB(config.directory)
-//  database.initDB()
-
 
   val indexEndpoint: ServerEndpoint[Any, Identity] =
     endpoint.get
@@ -94,15 +107,14 @@ case class Configuration(
       .serverLogicSuccess:  _ =>
         someHtml("connection(null);").render
 
-  val staticFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
+  val jsFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
+  val cssFrontend = staticFilesGetServerEndpoint[Identity]("css")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
 
-  //directory = Paths.get("target/frontend")
-
-  val endpoints = Endpoints(config.minio, config.jwtSecret)
+  val endpoints = Endpoints(config.database, config.minio, config.configuration.miniclust)
 
   NettySyncServer()
     .port(config.port)
-    .addEndpoints(List(indexEndpoint, staticFrontend))
+    .addEndpoints(List(indexEndpoint, jsFrontend, cssFrontend))
     .addEndpoints(endpoints.all)
     .startAndWait()
 
