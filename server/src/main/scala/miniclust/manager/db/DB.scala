@@ -97,6 +97,9 @@ class DB(dbFile: File):
     runTransaction:
       managerUserTable.filter(_.id === id).result.headOption
 
+  def miniClustUser(login: String): Option[DB.MiniClustUser]  =
+    runTransaction:
+      miniClustUserTable.filter(_.login === login).result.headOption
 //  def getOrCreateUser(login: String): ManagerUser =
 //    runTransaction:
 //      val insert =

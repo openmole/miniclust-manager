@@ -3,7 +3,7 @@ package miniclust.manager
 import io.circe.generic.auto.*
 import miniclust.manager.EndpointsAPI
 import miniclust.message.Minio
-import miniclust.manager.EndpointsAPI.{LoginForm, MinioUser, listUser, loginEndpoint, registerEndpoint, testEndpoint}
+import miniclust.manager.EndpointsAPI.{LoginForm, MiniClustUser, listUser, loginEndpoint, registerEndpoint, testEndpoint}
 import sttp.shared.Identity
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -45,6 +45,23 @@ object Endpoints:
 
 class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using jwt: JWT.Secret, salt: Salt):
 
+  object impl:
+    def listMiniClustUsers =
+      MC.userList(minio).
+        filter:
+          u => u.memberOf.map(_.name).exists(miniclust.userGroup.contains)
+        .map: u =>
+          val mcUser = db.miniClustUser(u.accessKey)
+
+          MiniClustUser(
+            login = u.accessKey,
+            status = u.userStatus.to[MiniClustUser.Status],
+            name = mcUser.map(_.name),
+            firstName = mcUser.map(_.firstName),
+            email = mcUser.map(_.email),
+            institution = mcUser.map(_.institution)
+          )
+
   val loginServerEndpoint: ServerEndpoint[Any, Identity] =
     loginEndpoint.serverLogic: l =>
       db.autenticate(l.username, l.password) match
@@ -55,15 +72,7 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
 
   val listUserServerEndpoint: ServerEndpoint[Any, Identity] =
     listUser.handleSecurity(Endpoints.verifyUser(db)).handleSuccess: _ =>
-      _ =>
-        MC.userList(minio).
-          filter:
-            u => u.memberOf.map(_.name).exists(miniclust.userGroup.contains)
-          .map: u =>
-            MinioUser(
-              login = u.accessKey,
-              status = u.userStatus.to[MinioUser.Status]
-            )
+      _ => impl.listMiniClustUsers
 
 
 //  val testServerEndpoint: ServerEndpoint[Any, Identity] =

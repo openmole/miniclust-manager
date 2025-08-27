@@ -1,10 +1,12 @@
 import org.scalajs.*
+
 import scala.scalajs.js.annotation.JSExportTopLevel
 import com.raquo.laminar.api.L.*
-
 import sttp.tapir.client.sttp4.*
 import sttp.client4.*
 import miniclust.manager.EndpointsAPI
+import miniclust.manager.EndpointsAPI.MiniClustUser
+
 import scala.concurrent.ExecutionContext.Implicits.*
 
 /*
@@ -84,17 +86,24 @@ def page(initialForm: Form) =
     )
 
 
+  def userRow(u: MiniClustUser) =
+    tr(
+      td(u.login, HTML.centerCell),
+      td(s"${u.firstName.getOrElse("NA")} ${u.name.getOrElse("NA")}", HTML.centerCell),
+      td(u.email.getOrElse("NA"), HTML.centerCell),
+      td(u.institution.getOrElse("NA"), HTML.centerCell),
+      td(u.status.toString, HTML.centerCell),
+      td(a("Edit"), a("Delete"))
+    )
+
   def userForm =
     table(cls := "table",
-      tr(Seq("login", "action").map(v => th(HTML.centerCell, v))),
+      tr(Seq("Login", "Name", "Email", "Institution", "Status", "Action").map(v => th(HTML.centerCell, v))),
       tbody(
         children <--
           Signal.fromFuture(STTPInterpreter().toRequest(EndpointsAPI.listUser)(()), Seq()).map: users =>
             users.map: u =>
-              tr(
-                td(u.login, HTML.centerCell),
-                td("test", HTML.centerCell)
-              )
+              userRow(u)
       )
     )
 

@@ -37,11 +37,11 @@ object EndpointsAPI:
       .out(header[String](HeaderNames.SetCookie))
       .out(stringBody)
 
-  val listUser: SecureEndpoint[Unit, Seq[MinioUser]] =
+  val listUser: SecureEndpoint[Unit, Seq[MiniClustUser]] =
     endpoint.post
       .in("list-user")
       .securityIn(cookie[Option[String]]("jwt"))
-      .out(jsonBody[Seq[MinioUser]])
+      .out(jsonBody[Seq[MiniClustUser]])
       .errorOut(stringBody)
 
 
@@ -72,12 +72,17 @@ object EndpointsAPI:
       .out(stringBody)
       .errorOut(stringBody)
 
-
-  object MinioUser:
+  object MiniClustUser:
     enum Status:
       case enabled, disabled
 
-  case class MinioUser(login: String, status: MinioUser.Status)
+  case class MiniClustUser(
+    login: String,
+    status: MiniClustUser.Status,
+    name: Option[String],
+    firstName: Option[String],
+    email: Option[String],
+    institution: Option[String])
 
   case class User(
    name: String,
