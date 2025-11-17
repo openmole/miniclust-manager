@@ -4,7 +4,8 @@ def circeVersion = "0.14.14"
 def commonSettings = Seq(
   scalaVersion := "3.7.2",
   version := "0.1.0-SNAPSHOT",
-  organization := "org.openmole.miniclust"
+  organization := "org.openmole.miniclust",
+  resolvers += "jitpack" at "https://jitpack.io"
 )
 
 lazy val server = (project in file("server")).settings(
@@ -51,7 +52,7 @@ lazy val server = (project in file("server")).settings(
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
-      "org.openmole.miniclust" %% "message" % "1.1-SNAPSHOT",
+      "com.github.openmole.miniclust" %% "message" % "3b22a09d8c",
       "com.github.jwt-scala" %% "jwt-core" % "11.0.0",
       //"com.lihaoyi" %% "upickle" % "4.1.0",
       "io.github.arainko" %%% "ducktape" % "0.2.9",
