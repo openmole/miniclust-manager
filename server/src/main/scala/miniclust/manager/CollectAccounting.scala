@@ -31,7 +31,7 @@ object CollectAccounting:
     Minio.listAndApply(minio, bucket, MiniClust.Coordination.accountingDirectory, maxKeys = Some(100), startAfter = last): o =>
       val content = Minio.content(minio, bucket, o.name)
       val job = MiniClust.JobResourceUsage.parse(content)
-      val a = DB.Accounting(o.name.drop(dirPrefix.length), job.second, job.bucket, job.key)
+      val a = DB.Accounting(o.name.drop(dirPrefix.length), job.second, job.bucket, job.nodeInfo.key)
       db.addAccounting(a)
       println(a)
 //          Minio.content(minio, bucket, k)
