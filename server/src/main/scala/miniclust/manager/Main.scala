@@ -98,7 +98,7 @@ case class Configuration(
 
   config.database.initDB()
 
-  val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName)
+  val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName, create = false)
 
   val indexEndpoint: ServerEndpoint[Any, Identity] =
     endpoint.get
