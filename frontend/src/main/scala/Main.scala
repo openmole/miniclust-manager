@@ -111,6 +111,9 @@ def page(initialForm: Form) =
     div(
       //img(src := "img/logo.png", Css.openmoleLogo),
         child <--
+          Signal.fromFuture(STTPInterpreter().toPublicRequest(EndpointsAPI.testEndpoint)(()), "").map: r =>
+            div(r),
+        child <--
           displayedForm.signal.map:
             case s: Form.SignIn => signInForm(s.error)
             case Form.User => userForm

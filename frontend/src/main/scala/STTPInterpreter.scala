@@ -17,6 +17,7 @@
 
 
 import sttp.tapir.client.sttp4.*
+import sttp.tapir.PublicEndpoint
 import sttp.client4.*
 import sttp.tapir.Endpoint
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,5 +29,10 @@ class STTPInterpreter:
   lazy val backend = DefaultFutureBackend()
 
   def toRequest[I, E, O](e: Endpoint[Option[String], I, E, O, Any])(i: I): Future[O] =
+    sttpInterpreter.toSecureRequestThrowErrors(e, None).apply(None).apply(i).send(backend).map: r =>
+      r.body
+
+
+  def toPublicRequest[I, E, O](e: PublicEndpoint[I, E, O, Any])(i: I): Future[O] =
     sttpInterpreter.toSecureRequestThrowErrors(e, None).apply(None).apply(i).send(backend).map: r =>
       r.body

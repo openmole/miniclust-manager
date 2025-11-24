@@ -28,6 +28,12 @@ object EndpointsAPI:
   type SecureEndpoint[I, O] = Endpoint[Option[String], I, String, O, Any]
 
   case class LoginForm(username: String, password: String)
+//
+//  val testEndpoint: PublicEndpoint[String, Unit, String, Any] =
+//    endpoint.post
+//      .in("test")
+//      .in(jsonBody[String])
+//      .out(stringBody)
 
   val loginEndpoint: PublicEndpoint[LoginForm, String, (String, String), Any] =
     endpoint.post
@@ -65,10 +71,10 @@ object EndpointsAPI:
       .in(formBody[RegisterUser])
       .errorOut(stringBody)
 
-  val testEndpoint: Endpoint[String, Unit, String, String, Any] =
+  val testEndpoint: PublicEndpoint[Unit, String, String, Any] =
     endpoint.get
       .in("test")
-      .securityIn(header[String](HeaderNames.Cookie))
+      //.securityIn(header[String](HeaderNames.Cookie))
       .out(stringBody)
       .errorOut(stringBody)
 

@@ -62,6 +62,11 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
             institution = mcUser.map(_.institution)
           )
 
+
+  val testServerEndpoint: ServerEndpoint[Any, Identity] =
+    testEndpoint.serverLogicSuccessPure: l =>
+      "youpi !!!"
+
   val loginServerEndpoint: ServerEndpoint[Any, Identity] =
     loginEndpoint.serverLogic: l =>
       db.autenticate(l.username, l.password) match
@@ -92,7 +97,7 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
 //
 //      db.addRegisterUser(registerUser)
 
-  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint)
+  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint, testServerEndpoint)
 
   val docEndpoints: List[ServerEndpoint[Any, Identity]] = SwaggerInterpreter()
     .fromServerEndpoints[Identity](apiEndpoints, "manager", "1.0.0")
