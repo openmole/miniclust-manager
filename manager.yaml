@@ -1,0 +1,11 @@
+minio:
+  url: https://babar.openmole.org
+  key: managergui
+  secret: VohbeeCh8ahchoh8mij4
+  #insecure: true
+secret:
+  jwt: test
+  salt: test
+miniclust:
+  user-group: ["user"]
+  compute-group: ["compute"]

@@ -1,8 +1,11 @@
 def tapirVersion = "1.11.33"
 def circeVersion = "0.14.14"
+def ScalaVersion = "3.7.2"
+
+def esbuildMain = s"scala-${ScalaVersion}/esbuild/main"
 
 def commonSettings = Seq(
-  scalaVersion := "3.7.2",
+  scalaVersion := ScalaVersion,
   version := "0.1.0-SNAPSHOT",
   organization := "org.openmole.miniclust",
   resolvers += "jitpack" at "https://jitpack.io"
@@ -12,6 +15,7 @@ lazy val server = (project in file("server")).settings(
   commonSettings,
 
   Compile / resourceGenerators += Def.taskDyn {
+    val jsBuild = (frontend / Compile / fullOptJS / esbuildBundle).value
     val jsTask = (frontend / Compile / fastOptJS).map(_.data)
     val htmlTask = (frontend / Compile / resourceDirectory).map(_ / "index.html")
     val cssTask = (frontend / Compile / resourceDirectory).map(_ / "style.css")
@@ -22,7 +26,7 @@ lazy val server = (project in file("server")).settings(
       val cssFile = cssTask.value
 
       val destDir = target.value / "frontend"
-      val destJS = destDir / "main.js"
+      val destJS = destDir / "js/main.js"
 
       IO.createDirectory(destDir)
 
@@ -35,6 +39,7 @@ lazy val server = (project in file("server")).settings(
       Seq(destJS, copiedHtml)
     }
   },
+
 
   //fork := true,
 
@@ -62,7 +67,7 @@ lazy val server = (project in file("server")).settings(
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test
     ),
   )
-) dependsOn(common)
+) dependsOn (common)
 
 lazy val common = (project in file("common")).enablePlugins(ScalaJSPlugin).settings(
   commonSettings,
@@ -76,7 +81,7 @@ lazy val common = (project in file("common")).enablePlugins(ScalaJSPlugin).setti
 )
 
 lazy val frontend = (project in file("frontend"))
-  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalaJSEsbuildPlugin)
   .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
     commonSettings,
@@ -88,9 +93,14 @@ lazy val frontend = (project in file("frontend"))
       "io.circe" %%% "circe-generic" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion
       //"io.github.cquiroz" %%% "scala-java-time" % "2.2.0",
-//      "com.softwaremill.sttp.client3" %%% "circe" % "3.10.2"
+      //      "com.softwaremill.sttp.client3" %%% "circe" % "3.10.2"
     ),
-    externalNpm := baseDirectory.value
+    scalaJSUseMainModuleInitializer := true,
+    externalNpm := target.value / esbuildMain,
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.ESModule)
+    }
+
   )
   .dependsOn(common)
 

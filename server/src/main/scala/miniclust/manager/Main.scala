@@ -72,24 +72,24 @@ case class Configuration(
 
   val staticPath = new java.io.File("server/target/frontend").getAbsolutePath
 
-  def someHtml(jsCall: String) =
-    import scalatags.Text.all.*
-
-    html(
-      head(
-        meta(httpEquiv := "Content-Type", content := "text/html; charset=UTF-8"),
-        link(rel := "icon", href := "img/favicon.svg", `type` := "img/svg+xml"),
-        link(rel := "stylesheet", `type` := "text/css", href := "css/style.css"),
-        link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"),
-        link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"),
-        script(`type` := "text/javascript", src := "https://cdn.jsdelivr.net/npm/bootstrap.native@5.1.5/dist/bootstrap-native.min.js"),
-        Seq(s"main.js").map(jf => script(`type` := "text/javascript", src := s"js/$jf "))
-      ),
-      body(
-        onload := jsCall,
-        div(id := "appContainer", cls := "centerColumnFlex")
-      )
-    )
+//  def someHtml(jsCall: String) =
+//    import scalatags.Text.all.*
+//
+//    html(
+//      head(
+//        meta(httpEquiv := "Content-Type", content := "text/html; charset=UTF-8"),
+//        link(rel := "icon", href := "img/favicon.svg", `type` := "img/svg+xml"),
+//        link(rel := "stylesheet", `type` := "text/css", href := "css/style.css"),
+//        link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"),
+//        link(rel := "stylesheet", `type` := "text/css", href := "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"),
+//        script(`type` := "text/javascript", src := "https://cdn.jsdelivr.net/npm/bootstrap.native@5.1.5/dist/bootstrap-native.min.js"),
+//        Seq(s"main.js").map(jf => script(`type` := "text/javascript", src := s"js/$jf "))
+//      ),
+//      body(
+//        onload := jsCall,
+//        div(id := "appContainer", cls := "centerColumnFlex")
+//      )
+//    )
 
   val config = Configuration.read(File(configFile))
 
@@ -100,12 +100,12 @@ case class Configuration(
 
   val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName, create = false)
 
-  val indexEndpoint: ServerEndpoint[Any, Identity] =
-    endpoint.get
-      .in("")
-      .out(htmlBodyUtf8)
-      .serverLogicSuccess:  _ =>
-        someHtml("connection(null);").render
+//  val indexEndpoint: ServerEndpoint[Any, Identity] =
+//    endpoint.get
+//      .in("")
+//      .out(htmlBodyUtf8)
+//      .serverLogicSuccess:  _ =>
+//        someHtml("connection(null);").render
 
   val jsFrontend = staticFilesGetServerEndpoint[Identity]("js")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
   val cssFrontend = staticFilesGetServerEndpoint[Identity]("css")(staticPath) //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
@@ -114,7 +114,7 @@ case class Configuration(
 
   NettySyncServer()
     .port(config.port)
-    .addEndpoints(List(indexEndpoint, jsFrontend, cssFrontend))
+    .addEndpoints(List(/*indexEndpoint,*/ jsFrontend, cssFrontend))
     .addEndpoints(endpoints.all)
     .startAndWait()
 
