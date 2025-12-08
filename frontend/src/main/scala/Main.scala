@@ -33,70 +33,71 @@ enum Form:
 
 object Main:
   def main(args: Array[String]): Unit =
+    println("MAINE")
     renderOnDomContentLoaded(
-      dom.document.getElementById("app"),
-      div( width :=  "100%", height := "100%",
+      dom.document.getElementById("appContainer"),
+      div(width := "100%", height := "100%",
         userForm
+      )
     )
-  )
+  
 
-
-//----------------
-//@JSExportTopLevel("connection")
-//def connection(error: String) = page(Form.SignIn(Option(error)))
-//
-//@JSExportTopLevel("run")
-//def run() =
-//  def renderContent = div("youpi")
-//  lazy val appContainer = dom.document.querySelector("#appContainer")
-//  render(appContainer, renderContent)
-//
-//def page(initialForm: Form) =
-//
-//  val backend = DefaultFutureBackend()
-//  val displayedForm: Var[Form] = Var(initialForm)
-//
-//  def signInForm(error: Option[String]) =
-//    val login = Var[String]("")
-//    val password = Var[String]("")
-//
-//    val connectButton = button("Connect", cls := "btn btn-primary", `type` := "submit", float.right, right := "0")
-//
-//    div(marginTop := "120", cls := "d-flex justify-content-center align-items-center vh-100",
-//      div(cls:="d-flex flex-column align-items-end",
-//        form(
-//          method := "POST",
-//          //action := "login",
-//          onSubmit.preventDefault --> { _ =>
-//            val formData = EndpointsAPI.LoginForm(login.now(), password.now())
-//            val loginRequest = SttpClientInterpreter().toRequest(EndpointsAPI.loginEndpoint, None)
-//            loginRequest(formData).send(backend).foreach: r =>
-//              if r.code.isSuccess
-//              then displayedForm.set(Form.User)
-//              else
-//                r.body.map:
-//                  case Left(errorBody) => displayedForm.set(Form.SignIn(Some(errorBody)))
-//                  case _ =>
-//          },
-//
-//          Element.buildInput("Login").amend(
-//            cls := "form-control mb-2",
-//            controlled(value <-- login.signal, onInput.mapToValue --> login.writer)
-//          ),
-//          Element.buildInput("Password").amend(
-//            cls := "form-control mb-2",
-//            `type` := "password",
-//            controlled(value <-- password.signal, onInput.mapToValue --> password.writer)
-//          ),
-//          connectButton
-//        ),
-//  //      button("Sign Up", cls := "linkLike", onClick --> { _ => displayedForm.set(Form.SignUp) }),
-//  //      button("Lost Password", cls := "linkLike", onClick --> { _ => displayedForm.set(Form.AskPasswordReset) }),
-//        div(error.getOrElse(""), cls := "inputError", minWidth := "0", marginTop := "10")
-//      )
-//    )
-//
-//
+  //----------------
+  //@JSExportTopLevel("connection")
+  //def connection(error: String) = page(Form.SignIn(Option(error)))
+  //
+  //@JSExportTopLevel("run")
+  //def run() =
+  //  def renderContent = div("youpi")
+  //  lazy val appContainer = dom.document.querySelector("#appContainer")
+  //  render(appContainer, renderContent)
+  //
+  //def page(initialForm: Form) =
+  //
+  //  val backend = DefaultFutureBackend()
+  //  val displayedForm: Var[Form] = Var(initialForm)
+  //
+  //  def signInForm(error: Option[String]) =
+  //    val login = Var[String]("")
+  //    val password = Var[String]("")
+  //
+  //    val connectButton = button("Connect", cls := "btn btn-primary", `type` := "submit", float.right, right := "0")
+  //
+  //    div(marginTop := "120", cls := "d-flex justify-content-center align-items-center vh-100",
+  //      div(cls:="d-flex flex-column align-items-end",
+  //        form(
+  //          method := "POST",
+  //          //action := "login",
+  //          onSubmit.preventDefault --> { _ =>
+  //            val formData = EndpointsAPI.LoginForm(login.now(), password.now())
+  //            val loginRequest = SttpClientInterpreter().toRequest(EndpointsAPI.loginEndpoint, None)
+  //            loginRequest(formData).send(backend).foreach: r =>
+  //              if r.code.isSuccess
+  //              then displayedForm.set(Form.User)
+  //              else
+  //                r.body.map:
+  //                  case Left(errorBody) => displayedForm.set(Form.SignIn(Some(errorBody)))
+  //                  case _ =>
+  //          },
+  //
+  //          Element.buildInput("Login").amend(
+  //            cls := "form-control mb-2",
+  //            controlled(value <-- login.signal, onInput.mapToValue --> login.writer)
+  //          ),
+  //          Element.buildInput("Password").amend(
+  //            cls := "form-control mb-2",
+  //            `type` := "password",
+  //            controlled(value <-- password.signal, onInput.mapToValue --> password.writer)
+  //          ),
+  //          connectButton
+  //        ),
+  //  //      button("Sign Up", cls := "linkLike", onClick --> { _ => displayedForm.set(Form.SignUp) }),
+  //  //      button("Lost Password", cls := "linkLike", onClick --> { _ => displayedForm.set(Form.AskPasswordReset) }),
+  //        div(error.getOrElse(""), cls := "inputError", minWidth := "0", marginTop := "10")
+  //      )
+  //    )
+  //
+  //
   def userRow(u: MiniClustUser) =
     tr(
       td(u.login, HTML.centerCell),

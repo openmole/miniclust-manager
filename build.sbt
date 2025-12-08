@@ -1,3 +1,4 @@
+
 def tapirVersion = "1.11.33"
 def circeVersion = "0.14.14"
 def ScalaVersion = "3.7.2"
@@ -17,12 +18,10 @@ lazy val server = (project in file("server")).settings(
   Compile / resourceGenerators += Def.taskDyn {
     val jsBuild = (frontend / Compile / fullOptJS / esbuildBundle).value
     val jsTask = (frontend / Compile / fastOptJS).map(_.data)
-    val htmlTask = (frontend / Compile / resourceDirectory).map(_ / "index.html")
     val cssTask = (frontend / Compile / resourceDirectory).map(_ / "style.css")
 
     Def.task {
       val jsFile = jsTask.value
-      val htmlFile = htmlTask.value
       val cssFile = cssTask.value
 
       val destDir = target.value / "frontend"
@@ -30,18 +29,12 @@ lazy val server = (project in file("server")).settings(
 
       IO.createDirectory(destDir)
 
-      val copiedHtml = destDir / htmlFile.getName
-
       IO.copyFile(jsFile, destJS)
-      IO.copyFile(htmlFile, copiedHtml)
-      IO.copyFile(cssFile, destDir / cssFile.getName)
+      IO.copyFile(cssFile, destDir / "css" / cssFile.getName)
 
-      Seq(destJS, copiedHtml)
+      Seq(destJS)
     }
   },
-
-
-  //fork := true,
 
   Seq(
     name := "manager",
