@@ -25,22 +25,65 @@ import miniclust.manager.Tool
 object DBSchemaV1:
   def dbVersion = 1
 
-  case class Accounting(
+  case class AccountingJob(
     id: String,
     duration: Long,
     bucket: String,
     key: String
   )
 
-  class AccountingTable(tag: Tag) extends Table[Accounting](tag, "ACCOUNTING"):
+  class AccountingJobTable(tag: Tag) extends Table[AccountingJob](tag, "ACCOUNTING_JOB"):
     def duration = column[Long]("DURATION")
     def id = column[String]("ID", O.PrimaryKey)
     def bucket = column[String]("BUCKET")
     def key = column[String]("KEY")
 
-    def * = (id, duration, bucket, key).mapTo[Accounting]
+    def * = (id, duration, bucket, key).mapTo[AccountingJob]
 
-  val accountingTable = TableQuery[AccountingTable]
+  val accountingJobTable = TableQuery[AccountingJobTable]
+
+  object AccountingWorker:
+    case class MiniClust(version: String, build: Long)
+    case class Usage(cores: Int, availableSpace: Long, availableMemory: Long, load: Double)
+    case class NodeInfo(id: String, ip: String, key: String, hostname: Option[String], cores: Int, machineCores: Int, space: Long, memory: Long)
+
+
+  case class AccountingWorker(
+    id: String,
+    time: Long,
+    nodeInfo: AccountingWorker.NodeInfo,
+    miniclust: AccountingWorker.MiniClust,
+    usage: AccountingWorker.Usage)
+
+
+  class AccountingWorkerTable(tag: Tag) extends Table[AccountingWorker](tag, "ACCOUNTING_WORKER"):
+    def id = column[String]("ID", O.PrimaryKey)
+    def time = column[Long]("TIME")
+    def nodeId = column[String]("NODE_ID")
+    def nodeIP = column[String]("NODE_IP")
+    def nodeKey = column[String]("NODE_KEY")
+    def nodeHostName = column[Option[String]]("NODE_HOST_NAME")
+    def nodeCores = column[Int]("NODE_CORES")
+    def nodeMachineCores = column[Int]("NODE_MACHINE_CORES")
+    def nodeSpace = column[Long]("NODE_SPACE")
+    def nodeMemory = column[Long]("NODE_MEMORY")
+    def miniclustVersion = column[String]("MINICLUST_VERSION")
+    def miniclustBuild = column[Long]("MINICLUST_BUILD")
+    def usageCores = column[Int]("USAGE_CORES")
+    def usageAvailableMemory = column[Long]("USAGE_AVAILABLE_MEMORY")
+    def usageAvailableSpace = column[Long]("USAGE_AVAILABLE_SPACE")
+    def usageLoad = column[Double]("USAGE_LOAD")
+
+    def * =
+      (
+        id,
+        time,
+        (nodeId, nodeIP, nodeKey, nodeHostName, nodeCores, nodeMachineCores, nodeSpace, nodeMemory).mapTo[AccountingWorker.NodeInfo],
+        (miniclustVersion, miniclustBuild).mapTo[AccountingWorker.MiniClust],
+        (usageCores, usageAvailableSpace, usageAvailableMemory, usageLoad).mapTo[AccountingWorker.Usage]
+      ).mapTo[AccountingWorker]
+
+  val accountingWorkerTable = TableQuery[AccountingWorkerTable]
 
   type Email = String
   type Institution = String
@@ -100,7 +143,7 @@ object DBSchemaV1:
 
 
   def upgrade =
-    val schema = accountingTable.schema ++ managerUserTable.schema ++ miniClustUserTable.schema
+    val schema = accountingJobTable.schema ++ accountingWorkerTable.schema ++  managerUserTable.schema ++ miniClustUserTable.schema
     def upgrade = schema.createIfNotExists
     Upgrade(upgrade = upgrade, version = dbVersion)
 

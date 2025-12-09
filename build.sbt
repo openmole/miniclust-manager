@@ -51,10 +51,11 @@ lazy val server = (project in file("server")).settings(
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
-      "com.github.openmole.miniclust" %% "message" % "3b22a09d8c",
+      "com.github.openmole.miniclust" %% "message" % "06eee36bba",
       "com.github.jwt-scala" %% "jwt-core" % "11.0.0",
       //"com.lihaoyi" %% "upickle" % "4.1.0",
-      "io.github.arainko" %%% "ducktape" % "0.2.9",
+      "io.github.arainko" %%% "ducktape" % "0.2.10",
+      "com.github.f4b6a3" % "ulid-creator" % "5.2.3",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test

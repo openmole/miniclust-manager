@@ -40,8 +40,6 @@ case class Upgrade(upgrade: DBIO[Unit], version: Int)
 object DB:
   export DBSchemaV1.*
 
-
-
 class DB(dbFile: File):
   import DBSchemaV1.*
 
@@ -55,13 +53,21 @@ class DB(dbFile: File):
     Async.blocking:
       db.run(action.transactionally).asGears.await
 
-  def lastId: Option[String] =
+  def lastJobAccountingId: Option[String] =
     runTransaction:
-      accountingTable.sortBy(_.id.desc).map(_.id).result.headOption
+      accountingJobTable.sortBy(_.id.desc).map(_.id).result.headOption
 
-  def addAccounting(a: Accounting) =
+  def addJobAccounting(a: AccountingJob) =
     runTransaction:
-      accountingTable += a
+      accountingJobTable += a
+
+  def lastWorkerAccountingId: Option[String] =
+    runTransaction:
+      accountingWorkerTable.sortBy(_.id.desc).map(_.id).result.headOption
+
+  def addWorkerAccounting(a: AccountingWorker) =
+    runTransaction:
+      accountingWorkerTable.insertOrUpdate(a)
 
   def salted(password: Password)(using salt: Salt) = Tool.hash(password, salt.value)
 

@@ -1,9 +1,5 @@
 package miniclust.manager
 
-import miniclust.message.*
-import miniclust.manager.db.*
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
-import scala.jdk.CollectionConverters.*
 
 /*
  * Copyright (C) 2025 Romain Reuillon
@@ -22,18 +18,40 @@ import scala.jdk.CollectionConverters.*
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import io.github.arainko.ducktape.*
+import com.github.f4b6a3.ulid.UlidCreator
+import miniclust.message.*
+import miniclust.manager.db.*
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+
+import java.util.logging.Logger
+import scala.jdk.CollectionConverters.*
+
 object CollectAccounting:
 
-  def collect(minio: Minio, bucket: Minio.Bucket, db: DB) =
-    def dirPrefix = s"${MiniClust.Coordination.accountingDirectory}/"
-    def last = db.lastId.map(id => s"$dirPrefix$id")
+  val logger = Logger.getLogger(getClass.getName)
 
-    Minio.listAndApply(minio, bucket, MiniClust.Coordination.accountingDirectory, maxKeys = Some(100), startAfter = last): o =>
+  def collect(minio: Minio, bucket: Minio.Bucket, db: DB, old: Option[Long]) =
+    def dirPrefix = MiniClust.Coordination.workerAccountingDirectory
+
+    def last =
+      old.map: old =>
+        MiniClust.Coordination.workerAccountingDirectory + "/" + UlidCreator.getUlid(System.currentTimeMillis - old * 1000).toLowerCase
+    //def last = db.lastWorkerAccountingId.map(id => s"$dirPrefix/$id")
+
+    Minio.listAndApply(minio, bucket, MiniClust.Coordination.workerAccountingDirectory + "/", startAfter = last): o =>
       val content = Minio.content(minio, bucket, o.name)
-      val job = MiniClust.JobResourceUsage.parse(content)
-      val a = DB.Accounting(o.name.drop(dirPrefix.length), job.second, job.bucket, job.nodeInfo.key)
-      db.addAccounting(a)
-      println(a)
+
+      val worker: DBSchemaV1.AccountingWorker =
+        MiniClust.Accounting.Worker.parse(content)
+          .into[DBSchemaV1.AccountingWorker]
+          .transform(
+            Field.const(_.id, o.name.drop(MiniClust.Coordination.workerAccountingDirectory.length + 1)), //.const(_.time, o.lastModified.get))
+            Field.const(_.time, o.lastModified.get)
+          )
+
+      logger.info("Insert worker activity: " + worker)
+      db.addWorkerAccounting(worker)
 //          Minio.content(minio, bucket, k)
 //          val objectIdentifiers = keys.map(k => ObjectIdentifier.builder().key(k).build())
 //          delete(minio, bucket, keys.toSeq *)

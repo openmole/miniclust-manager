@@ -95,6 +95,11 @@ case class Configuration(
 
   val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName, create = false)
 
+  Background.run:
+    CollectAccounting.collect(config.minio, coordinationBucket, config.database, None)
+    Cron.seconds(30): () =>
+      CollectAccounting.collect(config.minio, coordinationBucket, config.database, old = Some(15 * 60))
+
   val indexEndpoint: ServerEndpoint[Any, Identity] =
     endpoint.get
       .in("")
