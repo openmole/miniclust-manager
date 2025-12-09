@@ -40,19 +40,22 @@ object CollectAccounting:
     //def last = db.lastWorkerAccountingId.map(id => s"$dirPrefix/$id")
 
     Minio.listAndApply(minio, bucket, MiniClust.Coordination.workerAccountingDirectory + "/", startAfter = last): o =>
-      val content = Minio.content(minio, bucket, o.name)
+      val id = o.name.drop(MiniClust.Coordination.workerAccountingDirectory.length + 1)
+      if !db.workerAccountingExists(id)
+      then
+        val content = Minio.content(minio, bucket, o.name)
 
-      val worker: DBSchemaV1.AccountingWorker =
-        MiniClust.Accounting.Worker.parse(content)
-          .into[DBSchemaV1.AccountingWorker]
-          .transform(
-            Field.const(_.id, o.name.drop(MiniClust.Coordination.workerAccountingDirectory.length + 1)), //.const(_.time, o.lastModified.get))
-            Field.const(_.time, o.lastModified.get)
-          )
+        val worker: DBSchemaV1.AccountingWorker =
+          MiniClust.Accounting.Worker.parse(content)
+            .into[DBSchemaV1.AccountingWorker]
+            .transform(
+              Field.const(_.id, id), //.const(_.time, o.lastModified.get))
+              Field.const(_.time, o.lastModified.get)
+            )
 
-      logger.info("Insert worker activity: " + worker)
-      db.addWorkerAccounting(worker)
+        logger.info("Insert worker activity: " + worker)
+        db.addWorkerAccounting(worker)
 //          Minio.content(minio, bucket, k)
 //          val objectIdentifiers = keys.map(k => ObjectIdentifier.builder().key(k).build())
 //          delete(minio, bucket, keys.toSeq *)
-
+      else logger.info("skip worker activity: " + id)

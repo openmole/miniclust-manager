@@ -65,6 +65,10 @@ class DB(dbFile: File):
     runTransaction:
       accountingWorkerTable.sortBy(_.id.desc).map(_.id).result.headOption
 
+  def workerAccountingExists(id: String): Boolean =
+    runTransaction:
+      accountingWorkerTable.filter(_.id === id).exists.result
+
   def addWorkerAccounting(a: AccountingWorker) =
     runTransaction:
       accountingWorkerTable.insertOrUpdate(a)
