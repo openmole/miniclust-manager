@@ -47,7 +47,7 @@ class DB(dbFile: File):
 
   lazy val db: Database =
     DriverManager.registerDriver(new org.h2.Driver())
-    Database.forURL(url = s"jdbc:h2:${dbFile.pathAsString}")
+    Database.forURL(url = s"jdbc:h2:${dbFile.pathAsString};COMPRESS=TRUE;")
 
   def runTransaction[E <: Effect, T](action: DBIOAction[T, NoStream, E]): T =
     Async.blocking:
