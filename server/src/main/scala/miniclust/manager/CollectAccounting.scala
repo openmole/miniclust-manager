@@ -31,7 +31,7 @@ object CollectAccounting:
 
   val logger = Logger.getLogger(getClass.getName)
 
-  def collect(minio: Minio, bucket: Minio.Bucket, db: DB, old: Option[Long]) =
+  def collectWorkerActivity(minio: Minio, bucket: Minio.Bucket, db: DB, old: Option[Long]) =
     def dirPrefix = MiniClust.Coordination.workerAccountingDirectory
 
     def last =
