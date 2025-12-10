@@ -19,7 +19,7 @@ package miniclust.manager
  */
 
 import io.github.arainko.ducktape.*
-import com.github.f4b6a3.ulid.UlidCreator
+import com.github.f4b6a3.ulid.*
 import miniclust.message.*
 import miniclust.manager.db.*
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
@@ -36,8 +36,7 @@ object CollectAccounting:
 
     def last =
       old.map: old =>
-        MiniClust.Coordination.workerAccountingDirectory + "/" + UlidCreator.getUlid(System.currentTimeMillis - old * 1000).toLowerCase
-    //def last = db.lastWorkerAccountingId.map(id => s"$dirPrefix/$id")
+        MiniClust.Coordination.workerAccountingDirectory + "/" + UlidCreator.getUlid(System.currentTimeMillis - old * 1000).toLowerCase.substring(0, Ulid.TIME_CHARS)
 
     Minio.listAndApply(minio, bucket, MiniClust.Coordination.workerAccountingDirectory + "/", startAfter = last): o =>
       val id = o.name.drop(MiniClust.Coordination.workerAccountingDirectory.length + 1)
