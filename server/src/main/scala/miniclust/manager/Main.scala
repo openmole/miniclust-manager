@@ -95,7 +95,7 @@ case class Configuration(
 
   val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName, create = false)
 
-  Background.run:
+  Cron.seconds(12 * 60 * 60, initialSchedule = true): () =>
     CollectAccounting.collectWorkerActivity(config.minio, coordinationBucket, config.database, None)
 
   Cron.seconds(30, initialSchedule = true): () =>
