@@ -16,23 +16,20 @@ lazy val server = (project in file("server")).settings(
   commonSettings,
 
   Compile / resourceGenerators += Def.taskDyn {
-    val jsBuild = (frontend / Compile / fullOptJS / esbuildBundle).value
-    val jsTask = (frontend / Compile / fastOptJS).map(_.data)
+    val jsBuild = (frontend / Compile / fastOptJS / esbuildBundle).value
     val cssTask = (frontend / Compile / resourceDirectory).map(_ / "style.css")
 
     Def.task {
-      val jsFile = jsTask.value
       val cssFile = cssTask.value
 
-      val destDir = target.value / "frontend"
-      val destJS = destDir / "js/main.js"
+      val destTarget = target.value / "frontend"
 
-      IO.createDirectory(destDir)
+      IO.createDirectory(destTarget)
 
-      IO.copyFile(jsFile, destJS)
-      IO.copyFile(cssFile, destDir / "css" / cssFile.getName)
+      IO.copyFile((frontend / Compile / target).value / s"${esbuildMain}/out/main.js", destTarget / "js/main.js")
+      IO.copyFile(cssFile, destTarget / "css" / cssFile.getName)
 
-      Seq(destJS)
+      Seq()
     }
   },
 
@@ -90,6 +87,7 @@ lazy val frontend = (project in file("frontend"))
       //      "com.softwaremill.sttp.client3" %%% "circe" % "3.10.2"
     ),
     scalaJSUseMainModuleInitializer := true,
+    stOutputPackage := "miniclust.facade",
     externalNpm := target.value / esbuildMain,
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule)

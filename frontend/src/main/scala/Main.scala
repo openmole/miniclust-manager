@@ -1,10 +1,11 @@
 import org.scalajs.*
 
+import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 import com.raquo.laminar.api.L.*
 import sttp.tapir.client.sttp4.*
 import sttp.client4.*
-import miniclust.manager.EndpointsAPI
+import miniclust.manager.{CoreActivity, EndpointsAPI}
 import miniclust.manager.EndpointsAPI.MiniClustUser
 
 import scala.concurrent.ExecutionContext.Implicits.*
@@ -34,13 +35,11 @@ enum Form:
 object Main:
   def main(args: Array[String]): Unit =
     println("MAINE")
-    renderOnDomContentLoaded(
-      dom.document.getElementById("appContainer"),
-      div(width := "100%", height := "100%",
-        userForm
-      )
+    div(width := "1000",
+      coreActivity
     )
-  
+    renderOnDomContentLoaded(dom.document.querySelector("#appContainer"), coreActivity)
+
 
   //----------------
   //@JSExportTopLevel("connection")
@@ -98,6 +97,16 @@ object Main:
   //    )
   //
   //
+
+  def coreActivity =
+    CoreActivity.build(
+      js.Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20).map(_.toDouble),
+      js.Array(
+        js.Array(13, 55, 21, 11, 1, 25, 88, 2, 55, 54, 41, 40, 12, 12, 15, 11, 45, 44, 78, 74).map(_.toDouble),
+        js.Array(13, 55, 21, 25, 88, 2, 55, 54, 41, 40, 12, 12, 15, 11, 45, 44, 78, 74, 4, 55).map(_.toDouble),
+      )
+    )
+
   def userRow(u: MiniClustUser) =
     tr(
       td(u.login, HTML.centerCell),
