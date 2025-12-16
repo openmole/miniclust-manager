@@ -30,6 +30,7 @@ import miniclust.manager.Tool.given_ExecutionContext
 import java.sql.DriverManager
 import java.util.logging.Logger
 import better.files.*
+import miniclust.manager.EndpointsAPI.HostUsage
 import miniclust.manager.db.DBSchemaV1.ManagerUser.Role
 import miniclust.manager.{Salt, Tool}
 
@@ -68,6 +69,17 @@ class DB(dbFile: File):
   def workerAccountingExists(id: String): Boolean =
     runTransaction:
       accountingWorkerTable.filter(_.id === id).exists.result
+
+  def hostUsages(since: Long, length: Int): Seq[HostUsage] =
+    val workersSince: Seq[AccountingWorker] =
+      runTransaction:
+        accountingWorkerTable
+          .filter(_.time >= since)
+          .result
+
+    workersSince
+      .groupBy(x=> x.nodeInfo.hostname.getOrElse("Unknown"))
+      .map(x=> HostUsage(x._1, x._2.headOption.map(_.nodeInfo.id).getOrElse("Unknown"), x._2.map(_.usage.cores).takeRight(length))).toSeq
 
   def addWorkerAccounting(a: AccountingWorker) =
     runTransaction:

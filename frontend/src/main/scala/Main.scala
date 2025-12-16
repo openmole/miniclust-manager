@@ -6,9 +6,10 @@ import com.raquo.laminar.api.L.*
 import sttp.tapir.client.sttp4.*
 import sttp.client4.*
 import miniclust.manager.{CoreActivity, EndpointsAPI}
-import miniclust.manager.EndpointsAPI.MiniClustUser
+import miniclust.manager.EndpointsAPI.{HostUsage, MiniClustUser}
 
 import scala.concurrent.ExecutionContext.Implicits.*
+import scala.scalajs.js.JSConverters.iterableOnceConvertible2JSRichIterableOnce
 
 /*
  * Copyright (C) 2025 Romain Reuillon
@@ -34,7 +35,6 @@ enum Form:
 
 object Main:
   def main(args: Array[String]): Unit =
-    println("MAINE")
     div(width := "1000",
       coreActivity
     )
@@ -98,13 +98,24 @@ object Main:
   //
   //
 
+
   def coreActivity =
-    CoreActivity.build(
-      js.Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20).map(_.toDouble),
-      js.Array(
-        js.Array(13, 55, 21, 11, 1, 25, 88, 2, 55, 54, 41, 40, 12, 12, 15, 11, 45, 44, 78, 74).map(_.toDouble),
-        js.Array(13, 55, 21, 25, 88, 2, 55, 54, 41, 40, 12, 12, 15, 11, 45, 44, 78, 74, 4, 55).map(_.toDouble),
-      )
+
+    lazy val hostUsages: Var[Seq[HostUsage]] = Var(Seq())
+
+    div(
+      child <--
+        hostUsages.signal.map: hu =>
+          CoreActivity.build(
+            (1 to hu.headOption.map(_.usageCoresInTime).getOrElse(Seq()).size).map(_.toDouble).toJSArray,
+            hu.map(_.usageCoresInTime.toJSArray.map(_.toDouble)).toJSArray.take(6)
+          ),
+      EventStream.periodic(10000).toObservable -->
+        Observer: _ =>
+          STTPInterpreter().toPublicRequest(EndpointsAPI.hostUsage)(()).foreach: hu =>
+            println("HU " + hu)
+            hostUsages.set(hu)
+
     )
 
   def userRow(u: MiniClustUser) =

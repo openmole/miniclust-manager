@@ -39,26 +39,29 @@ object CoreActivity:
     "#f7c5a0",
     "#d4a4eb",
     "#d2f5a6",
-    "#76f2f2"
+    "#76f2f2",
+    "#99a2f2",
   )
 
   def build(xAxisData: js.Array[Double], series: Array[Array[Double]])=
     var optChart: Option[ECharts] = None
 
+    println("SERIES " + series.size + " // " + series.map(_.size))
     val eChartOption =
       EChartOption[EChartOption.Series]()
         .setBackgroundColor("#333")
         .setXAxis(XAxis()
-          .setType(CartesianAxis.Type.category)
-          .setBoundaryGap(false)
+         // .setType(CartesianAxis.Type.category)
+         // .setBoundaryGap(false)
+         // .setDataVarargs(xAxisData.toSeq*)
           .setDataVarargs(xAxisData.toSeq*)
         )
         .setYAxis(YAxis().setType(CartesianAxis.Type.value))
         .setSeries(
           series.zipWithIndex.map: (ol,zi) =>
-            println(zi + " // " + ol)
+            println(zi + " // " + ol + "// " + colors(zi))
             EChartOption.SeriesLine()
-              .setStack("total")
+              .setStack("x")
               .setSmooth(true)
               .setLineStyle(ShadowBlur().setWidth(0))
               .setType(echartsStrings.line.toString)

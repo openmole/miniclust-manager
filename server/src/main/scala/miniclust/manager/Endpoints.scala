@@ -3,7 +3,7 @@ package miniclust.manager
 import io.circe.generic.auto.*
 import miniclust.manager.EndpointsAPI
 import miniclust.message.Minio
-import miniclust.manager.EndpointsAPI.{LoginForm, MiniClustUser, listUser, loginEndpoint, registerEndpoint, testEndpoint}
+import miniclust.manager.EndpointsAPI.{LoginForm, MiniClustUser, hostUsage, listUser, loginEndpoint, registerEndpoint, testEndpoint}
 import sttp.shared.Identity
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -79,6 +79,10 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
     listUser.handleSecurity(Endpoints.verifyUser(db)).handleSuccess: _ =>
       _ => impl.listMiniClustUsers
 
+  val hostUsagesEndPoint: ServerEndpoint[Any, Identity] =
+    hostUsage.serverLogic: hu=>
+      Right(db.hostUsages(0, 25))
+
 
 //  val testServerEndpoint: ServerEndpoint[Any, Identity] =
 //    testEndpoint.handleSecurity(Endpoints.verifyUser(db)).handleSuccess: t =>
@@ -97,7 +101,7 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
 //
 //      db.addRegisterUser(registerUser)
 
-  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint, testServerEndpoint)
+  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint, testServerEndpoint, hostUsagesEndPoint)
 
   val docEndpoints: List[ServerEndpoint[Any, Identity]] = SwaggerInterpreter()
     .fromServerEndpoints[Identity](apiEndpoints, "manager", "1.0.0")

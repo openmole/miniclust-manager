@@ -12,6 +12,7 @@ import better.files.*
 import io.circe.yaml
 import miniclust.message.{MiniClust, Minio}
 import io.circe.generic.auto.*
+import miniclust.manager.db.DB
 
 
 
@@ -68,7 +69,7 @@ case class Configuration(
   secret: Configuration.Secret)
 
 @main def run(configFile: String) =
-  java.util.logging.Logger.getGlobal.setLevel(java.util.logging.Level.INFO)
+ // java.util.logging.Logger.getGlobal.setLevel(java.util.logging.Level.WARNING)
 
   val staticPath = new java.io.File("server/target/frontend").getAbsolutePath
 
