@@ -30,11 +30,11 @@ import miniclust.manager.Tool.given_ExecutionContext
 import java.sql.DriverManager
 import java.util.logging.Logger
 import better.files.*
-import miniclust.manager.EndpointsAPI.HostUsage
+import miniclust.manager.EndpointsAPI.{WorkerUsage, WorkersLoad}
 import miniclust.manager.db.DBSchemaV1.ManagerUser.Role
 import miniclust.manager.{Salt, Tool}
 
-import java.util.UUID
+import java.util.{Calendar, UUID}
 
 case class Upgrade(upgrade: DBIO[Unit], version: Int)
 
@@ -42,6 +42,7 @@ object DB:
   export DBSchemaV1.*
 
 class DB(dbFile: File):
+
   import DBSchemaV1.*
 
   val logger = Logger.getLogger(getClass.getName)
@@ -70,16 +71,41 @@ class DB(dbFile: File):
     runTransaction:
       accountingWorkerTable.filter(_.id === id).exists.result
 
-  def hostUsages(since: Long, length: Int): Seq[HostUsage] =
+  def workersLoad(since: Long, timeStep: Long): WorkersLoad =
+    import org.apache.commons.math3.analysis.interpolation.LinearInterpolator
+
     val workersSince: Seq[AccountingWorker] =
       runTransaction:
         accountingWorkerTable
-          .filter(_.time >= since)
+          .filter(aw => aw.time >= (since / 1000L))
           .result
 
-    workersSince
-      .groupBy(x=> x.nodeInfo.hostname.getOrElse("Unknown"))
-      .map(x=> HostUsage(x._1, x._2.headOption.map(_.nodeInfo.id).getOrElse("Unknown"), x._2.map(_.usage.cores).takeRight(length))).toSeq
+    val xtime = (since to (System.currentTimeMillis() - timeStep) by timeStep).toArray
+
+    WorkersLoad(
+      usages =
+        workersSince
+          .groupBy(x => x.nodeInfo.hostname.getOrElse("Unknown"))
+          .map(x => (
+            x._1,
+            x._2.headOption.map(_.nodeInfo.id).getOrElse("Unknown"),
+            x._2.map(x => (x.time * 1000L, x.usage.cores)).sortBy(_._1))).toSeq
+          .map: ws =>
+            val interpolator = new LinearInterpolator()
+            val fs = interpolator.interpolate(ws._3.map(_._1.toDouble).toArray, ws._3.map(_._2.toDouble).toArray)
+            WorkerUsage(ws._1, ws._2, xtime.map(v =>
+              if (fs.isValidPoint(v.toDouble))
+                fs.value(v.toDouble).toInt
+              else 0
+            )
+            ),
+      timeStamps =
+        xtime.map: xt=>
+          val calendar = new java.util.GregorianCalendar()
+          calendar.setTime(new java.util.Date(xt))
+          s"${calendar.get(Calendar.HOUR_OF_DAY)}:${calendar.get(Calendar.MINUTE)}"
+    )
+
 
   def addWorkerAccounting(a: AccountingWorker) =
     runTransaction:
@@ -119,40 +145,41 @@ class DB(dbFile: File):
     runTransaction:
       managerUserTable.filter(_.id === id).result.headOption
 
-  def miniClustUser(login: String): Option[DB.MiniClustUser]  =
+  def miniClustUser(login: String): Option[DB.MiniClustUser] =
     runTransaction:
       miniClustUserTable.filter(_.login === login).result.headOption
-//  def getOrCreateUser(login: String): ManagerUser =
-//    runTransaction:
-//      val insert =
-//        val u =
-//          ManagerUser(
-//            name = null,
-//            firstName = null,
-//            login = login,
-//            email = null,
-//            emailStatus = EmailStatus.Unchecked,
-//            institution = null,
-//            created = Tool.now
-//          )
-//        for
-//          _ <- managerUserTable += u
-//        yield u
-//
-//      for
-//        u <- managerUserTable.filter(u => u.login === login).result
-//        ru <- if u.isEmpty then insert else DBIO.successful(u.head)
-//      yield ru
-//
-//  def addRegisterUser(user: MiniClustUser) =
-//    runTransaction:
-//      registerUserTable += user
+  //  def getOrCreateUser(login: String): ManagerUser =
+  //    runTransaction:
+  //      val insert =
+  //        val u =
+  //          ManagerUser(
+  //            name = null,
+  //            firstName = null,
+  //            login = login,
+  //            email = null,
+  //            emailStatus = EmailStatus.Unchecked,
+  //            institution = null,
+  //            created = Tool.now
+  //          )
+  //        for
+  //          _ <- managerUserTable += u
+  //        yield u
+  //
+  //      for
+  //        u <- managerUserTable.filter(u => u.login === login).result
+  //        ru <- if u.isEmpty then insert else DBIO.successful(u.head)
+  //      yield ru
+  //
+  //  def addRegisterUser(user: MiniClustUser) =
+  //    runTransaction:
+  //      registerUserTable += user
 
   object DatabaseInfo:
     case class Data(version: Int)
 
   class DatabaseInfo(tag: Tag) extends Table[DatabaseInfo.Data](tag, "DB_INFO"):
     def version = column[Int]("VERSION")
+
     def * = version.mapTo[DatabaseInfo.Data]
 
   val databaseInfoTable = TableQuery[DatabaseInfo]
@@ -161,6 +188,7 @@ class DB(dbFile: File):
 
   def initDB()(using Salt) =
     runTransaction:
+
       def createDBInfo: DBIO[Int] =
         for
           _ <- databaseInfoTable.schema.createIfNotExists

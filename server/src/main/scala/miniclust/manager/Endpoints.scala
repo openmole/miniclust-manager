@@ -3,7 +3,7 @@ package miniclust.manager
 import io.circe.generic.auto.*
 import miniclust.manager.EndpointsAPI
 import miniclust.message.Minio
-import miniclust.manager.EndpointsAPI.{LoginForm, MiniClustUser, hostUsage, listUser, loginEndpoint, registerEndpoint, testEndpoint}
+import miniclust.manager.EndpointsAPI.{LoginForm, MiniClustUser, listUser, loginEndpoint, registerEndpoint, testEndpoint, workersLoad}
 import sttp.shared.Identity
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -79,9 +79,11 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
     listUser.handleSecurity(Endpoints.verifyUser(db)).handleSuccess: _ =>
       _ => impl.listMiniClustUsers
 
-  val hostUsagesEndPoint: ServerEndpoint[Any, Identity] =
-    hostUsage.serverLogic: hu=>
-      Right(db.hostUsages(0, 25))
+  val workersLoadEndPoint: ServerEndpoint[Any, Identity] =
+    workersLoad.serverLogic: hu=>
+      val oneDayAgo = java.time.Instant.now().minus(48, java.time.temporal.ChronoUnit.HOURS).toEpochMilli()
+      val timeStep = 120000L // 2 * 60000
+      Right(db.workersLoad(oneDayAgo, timeStep))
 
 
 //  val testServerEndpoint: ServerEndpoint[Any, Identity] =
@@ -101,7 +103,7 @@ class Endpoints(db: DB, minio: Minio, miniclust: MiniClustConfiguration)(using j
 //
 //      db.addRegisterUser(registerUser)
 
-  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint, testServerEndpoint, hostUsagesEndPoint)
+  val apiEndpoints: List[ServerEndpoint[Any, Identity]] = List(loginServerEndpoint, listUserServerEndpoint, testServerEndpoint, workersLoadEndPoint)
 
   val docEndpoints: List[ServerEndpoint[Any, Identity]] = SwaggerInterpreter()
     .fromServerEndpoints[Identity](apiEndpoints, "manager", "1.0.0")

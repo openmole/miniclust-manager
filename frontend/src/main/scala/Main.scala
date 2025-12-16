@@ -6,7 +6,7 @@ import com.raquo.laminar.api.L.*
 import sttp.tapir.client.sttp4.*
 import sttp.client4.*
 import miniclust.manager.{CoreActivity, EndpointsAPI}
-import miniclust.manager.EndpointsAPI.{HostUsage, MiniClustUser}
+import miniclust.manager.EndpointsAPI.{MiniClustUser, WorkerUsage, WorkersLoad}
 
 import scala.concurrent.ExecutionContext.Implicits.*
 import scala.scalajs.js.JSConverters.iterableOnceConvertible2JSRichIterableOnce
@@ -101,20 +101,24 @@ object Main:
 
   def coreActivity =
 
-    lazy val hostUsages: Var[Seq[HostUsage]] = Var(Seq())
+    lazy val workersLoad: Var[Option[WorkersLoad]] = Var(None)
 
     div(
       child <--
-        hostUsages.signal.map: hu =>
-          CoreActivity.build(
-            (1 to hu.headOption.map(_.usageCoresInTime).getOrElse(Seq()).size).map(_.toDouble).toJSArray,
-            hu.map(_.usageCoresInTime.toJSArray.map(_.toDouble)).toJSArray.take(6)
-          ),
-      EventStream.periodic(10000).toObservable -->
+        workersLoad.signal.map: wlop =>
+          wlop.map: wl=>
+            println("Size " + wl.usages.size)
+            CoreActivity.build(
+                wl.timeStamps.toJSArray,
+                wl.usages.map: us =>
+                  us.usageCoresInTime.map(_.toDouble).toJSArray
+                .toJSArray//.take(8)
+            )
+          .getOrElse(div("No data available")),
+      EventStream.periodic(30000).toObservable -->
         Observer: _ =>
-          STTPInterpreter().toPublicRequest(EndpointsAPI.hostUsage)(()).foreach: hu =>
-            println("HU " + hu)
-            hostUsages.set(hu)
+          STTPInterpreter().toPublicRequest(EndpointsAPI.workersLoad)(()).foreach: wl =>
+            workersLoad.set(Some(wl))
 
     )
 

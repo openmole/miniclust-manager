@@ -50,10 +50,10 @@ object EndpointsAPI:
       .out(jsonBody[Seq[MiniClustUser]])
       .errorOut(stringBody)
 
-  val hostUsage: PublicEndpoint[Unit, String, Seq[HostUsage], Any] =
+  val workersLoad: PublicEndpoint[Unit, String, WorkersLoad, Any] =
     endpoint.post
       .in("host-usages")
-      .out(jsonBody[Seq[HostUsage]])
+      .out(jsonBody[WorkersLoad])
       .errorOut(stringBody)
 
 //  val userEndpoint: Endpoint[String, String, String, User, Any] =
@@ -104,7 +104,12 @@ object EndpointsAPI:
    emailStatus: String,
    created: Long)
 
-  case class HostUsage(
+  case class WorkersLoad(
+     usages: Seq[WorkerUsage],
+     timeStamps: Seq[String]
+     )
+
+  case class WorkerUsage(
    name: String,
    id: String,
    usageCoresInTime: Seq[Int])

@@ -32,21 +32,31 @@ import miniclust.facade.echarts.echarts.EChartOption.{LineStyle, Series, SeriesL
 object CoreActivity:
 
   val colors = Seq(
-    "#fc97af",
-    "#87f7cf",
-    "#f7f494",
-    "#72ccff",
-    "#f7c5a0",
-    "#d4a4eb",
-    "#d2f5a6",
-    "#76f2f2",
-    "#99a2f2",
+    "#FF6347",
+    "#4682B4",
+    "#32CD32",
+    "#FFD700",
+    "#8A2BE2",
+    "#DC143C",
+    "#20B2AA",
+    "#FF4500",
+    "#7FFF00",
+    "#9400D3",
+    "#008080",
+    "#B8860B",
+    "#C0C0C0",
+    "#2F4F4F",
+    "#6A5ACD",
+    "#FF8C00",
+    "#00FA9A",
+    "#B22222",
+    "#D2B48C",
+    "#48D1CC"
   )
 
-  def build(xAxisData: js.Array[Double], series: Array[Array[Double]])=
+  def build(xAxisData: js.Array[String], series: Array[Array[Double]])=
     var optChart: Option[ECharts] = None
 
-    println("SERIES " + series.size + " // " + series.map(_.size))
     val eChartOption =
       EChartOption[EChartOption.Series]()
         .setBackgroundColor("#333")
@@ -59,7 +69,6 @@ object CoreActivity:
         .setYAxis(YAxis().setType(CartesianAxis.Type.value))
         .setSeries(
           series.zipWithIndex.map: (ol,zi) =>
-            println(zi + " // " + ol + "// " + colors(zi))
             EChartOption.SeriesLine()
               .setStack("x")
               .setSmooth(true)

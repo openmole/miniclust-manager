@@ -53,6 +53,7 @@ lazy val server = (project in file("server")).settings(
       //"com.lihaoyi" %% "upickle" % "4.1.0",
       "io.github.arainko" %%% "ducktape" % "0.2.10",
       "com.github.f4b6a3" % "ulid-creator" % "5.2.3",
+      "org.apache.commons" % "commons-math3" % "3.6.1",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % tapirVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "com.softwaremill.sttp.client3" %% "circe" % "3.10.2" % Test
