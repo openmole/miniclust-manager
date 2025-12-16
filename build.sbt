@@ -1,5 +1,5 @@
 
-def tapirVersion = "1.11.33"
+def tapirVersion = "1.13.3"
 def circeVersion = "0.14.14"
 def ScalaVersion = "3.7.2"
 
