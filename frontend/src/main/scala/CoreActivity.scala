@@ -46,7 +46,7 @@ object CoreActivity:
 
     div(
       width := "1000px",
-      height := "350px",
+      height := "500px",
       onMountUnmountCallback(
         mount = { nodeCtx =>
           val element = nodeCtx.thisNode.ref
