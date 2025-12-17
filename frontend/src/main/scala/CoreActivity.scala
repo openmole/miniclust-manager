@@ -9,57 +9,18 @@ import scala.scalajs.js
 import scala.scalajs.js.*
 import miniclust.facade.echarts.anon.{Origin, ShadowBlur}
 import miniclust.facade.echarts.echarts.EChartOption.BasicComponents.CartesianAxis
-import miniclust.facade.echarts.echarts.EChartOption.BasicComponents.CartesianAxis.DataObject
 import miniclust.facade.echarts.echarts.EChartOption.{LineStyle, Series, SeriesLine, XAxis, YAxis}
 
-
-//type LineData =
-//  scala.scalajs.js.UndefOr[
-//    scala.scalajs.js.Array[String | Double |
-//      CartesianAxis.DataObject
-//      ]
-//    ]
-//
-//type SeriesData =
-//  js.UndefOr[
-//    js.Array[
-//      (js.Array[
-//        Unit | String | Double | miniclust.facade.echarts.echarts.EChartOption.SeriesLine.DataObject
-//      ]) | miniclust.facade.echarts.echarts.EChartOption.SeriesLine.DataObject | Double | String | Unit
-//    ]
-//  ]
-
 object CoreActivity:
-
-  val colors = Seq(
-    "#FF6347",
-    "#4682B4",
-    "#32CD32",
-    "#FFD700",
-    "#8A2BE2",
-    "#DC143C",
-    "#20B2AA",
-    "#FF4500",
-    "#7FFF00",
-    "#9400D3",
-    "#008080",
-    "#B8860B",
-    "#C0C0C0",
-    "#2F4F4F",
-    "#6A5ACD",
-    "#FF8C00",
-    "#00FA9A",
-    "#B22222",
-    "#D2B48C",
-    "#48D1CC"
-  )
 
   def build(xAxisData: js.Array[String], series: Array[Array[Double]])=
     var optChart: Option[ECharts] = None
 
+    val colors = ColorPalette.colors().take(xAxisData.size)
+
     val eChartOption =
       EChartOption[EChartOption.Series]()
-        .setBackgroundColor("#333")
+        .setBackgroundColor("#fff")
         .setXAxis(XAxis()
          // .setType(CartesianAxis.Type.category)
          // .setBoundaryGap(false)
@@ -77,7 +38,7 @@ object CoreActivity:
               .setShowSymbol(false)
               .setAreaStyle(
                 Origin()
-                  .setOpacity(0.8)
+                  .setOpacity(0.95)
                   .setColor(colors(zi))
               )
               .setDataVarargs(ol.toSeq*)
@@ -85,7 +46,7 @@ object CoreActivity:
 
     div(
       width := "1000px",
-      height := "700px",
+      height := "350px",
       onMountUnmountCallback(
         mount = { nodeCtx =>
           val element = nodeCtx.thisNode.ref
