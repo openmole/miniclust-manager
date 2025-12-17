@@ -25,20 +25,27 @@ import miniclust.manager.Tool
 object DBSchemaV1:
   def dbVersion = 1
 
+
+  object AccountingJob:
+    extension (j: AccountingJob) 
+      def job = miniclust.message.MiniClust.Accounting.Job.parse(j.jobJson)
+
   case class AccountingJob(
     id: String,
     duration: Long,
     bucket: String,
-    key: String
+    nodeId: String,
+    jobJson: String                  
   )
 
   class AccountingJobTable(tag: Tag) extends Table[AccountingJob](tag, "ACCOUNTING_JOB"):
     def duration = column[Long]("DURATION")
     def id = column[String]("ID", O.PrimaryKey)
     def bucket = column[String]("BUCKET")
-    def key = column[String]("KEY")
+    def nodeId = column[String]("NODE_ID")
+    def jobJSON = column[String]("JOB_JSON")
 
-    def * = (id, duration, bucket, key).mapTo[AccountingJob]
+    def * = (id, duration, bucket, nodeId, jobJSON).mapTo[AccountingJob]
 
   val accountingJobTable = TableQuery[AccountingJobTable]
 

@@ -48,7 +48,7 @@ lazy val server = (project in file("server")).settings(
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
-      "com.github.openmole.miniclust" %% "message" % "06eee36bba",
+      "com.github.openmole.miniclust" %% "message" % "f07604400d",
       "com.github.jwt-scala" %% "jwt-core" % "11.0.0",
       //"com.lihaoyi" %% "upickle" % "4.1.0",
       "io.github.arainko" %%% "ducktape" % "0.2.10",
