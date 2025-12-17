@@ -94,13 +94,7 @@ case class Configuration(
 
   config.database.initDB()
 
-  val coordinationBucket = Minio.bucket(config.minio, MiniClust.Coordination.bucketName, create = false)
-
-  Cron.seconds(12 * 60 * 60, initialSchedule = true): () =>
-    CollectAccounting.collectWorkerActivity(config.minio, coordinationBucket, config.database, None)
-
-  Cron.seconds(30, initialSchedule = true): () =>
-    CollectAccounting.collectWorkerActivity(config.minio, coordinationBucket, config.database, old = Some(15 * 60))
+  val cron = CollectAccounting.start(config.minio, config.database)
 
   val indexEndpoint: ServerEndpoint[Any, Identity] =
     endpoint.get
@@ -114,9 +108,10 @@ case class Configuration(
 
   val endpoints = Endpoints(config.database, config.minio, config.configuration.miniclust)
 
-    NettySyncServer()
+  NettySyncServer()
     .port(config.port)
     .addEndpoints(List(indexEndpoint, cssFrontend, jsFrontend))
     .addEndpoints(endpoints.all)
     .startAndWait()
 
+  cron.stop()

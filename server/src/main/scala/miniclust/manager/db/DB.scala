@@ -54,18 +54,11 @@ class DB(dbFile: File):
   def runTransaction[E <: Effect, T](action: DBIOAction[T, NoStream, E]): T =
     Async.blocking:
       db.run(action.transactionally).asGears.await
-
-  def lastJobAccountingId: Option[String] =
+  
+  def jobAccountingExists(id: String): Boolean =
     runTransaction:
-      accountingJobTable.sortBy(_.id.desc).map(_.id).result.headOption
+      accountingWorkerTable.filter(_.id === id).exists.result
 
-  def addJobAccounting(a: AccountingJob) =
-    runTransaction:
-      accountingJobTable += a
-
-  def lastWorkerAccountingId: Option[String] =
-    runTransaction:
-      accountingWorkerTable.sortBy(_.id.desc).map(_.id).result.headOption
 
   def workerAccountingExists(id: String): Boolean =
     runTransaction:
@@ -110,6 +103,11 @@ class DB(dbFile: File):
   def addWorkerAccounting(a: AccountingWorker) =
     runTransaction:
       accountingWorkerTable.insertOrUpdate(a)
+
+  def addJobAccounting(a: AccountingJob) =
+    runTransaction:
+      accountingJobTable.insertOrUpdate(a)
+
 
   def salted(password: Password)(using salt: Salt) = Tool.hash(password, salt.value)
 
