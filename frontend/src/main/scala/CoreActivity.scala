@@ -16,11 +16,13 @@ object CoreActivity:
   def build(xAxisData: js.Array[String], series: Array[Array[Double]])=
     var optChart: Option[ECharts] = None
 
-    val colors = ColorPalette.colors().take(xAxisData.size)
-
+    println("Build ... " + series.size)
+    val colors = ChalkPalette.colors(series.size)
+      //ColorPalette.colors().take(xAxisData.size)
+    println("Colors " + colors)
     val eChartOption =
       EChartOption[EChartOption.Series]()
-        .setBackgroundColor("#fff")
+        .setBackgroundColor("#333")
         .setXAxis(XAxis()
          // .setType(CartesianAxis.Type.category)
          // .setBoundaryGap(false)
@@ -30,6 +32,7 @@ object CoreActivity:
         .setYAxis(YAxis().setType(CartesianAxis.Type.value))
         .setSeries(
           series.zipWithIndex.map: (ol,zi) =>
+            println("colors " + zi + " " + colors(zi))
             EChartOption.SeriesLine()
               .setStack("x")
               .setSmooth(true)
@@ -46,7 +49,7 @@ object CoreActivity:
 
     div(
       width := "1000px",
-      height := "500px",
+      height := "700px",
       onMountUnmountCallback(
         mount = { nodeCtx =>
           val element = nodeCtx.thisNode.ref
