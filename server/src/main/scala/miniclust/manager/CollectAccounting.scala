@@ -70,6 +70,7 @@ object CollectAccounting:
           val job = MiniClust.Accounting.Job.parse(content)
           DBSchemaV1.AccountingJob(
             id = id,
+            time = o.lastModified.get,
             duration = job.second,
             bucket = job.bucket,
             nodeId = job.nodeId,

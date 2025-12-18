@@ -32,6 +32,7 @@ object DBSchemaV1:
 
   case class AccountingJob(
     id: String,
+    time: Long,
     duration: Long,
     bucket: String,
     nodeId: String,
@@ -40,12 +41,13 @@ object DBSchemaV1:
 
   class AccountingJobTable(tag: Tag) extends Table[AccountingJob](tag, "ACCOUNTING_JOB"):
     def duration = column[Long]("DURATION")
+    def time = column[Long]("TIME")
     def id = column[String]("ID", O.PrimaryKey)
     def bucket = column[String]("BUCKET")
     def nodeId = column[String]("NODE_ID")
     def jobJSON = column[String]("JOB_JSON")
 
-    def * = (id, duration, bucket, nodeId, jobJSON).mapTo[AccountingJob]
+    def * = (id, time, duration, bucket, nodeId, jobJSON).mapTo[AccountingJob]
 
   val accountingJobTable = TableQuery[AccountingJobTable]
 
