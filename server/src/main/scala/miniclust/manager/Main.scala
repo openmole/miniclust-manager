@@ -13,6 +13,7 @@ import io.circe.yaml
 import miniclust.message.{MiniClust, Minio}
 import io.circe.generic.auto.*
 import miniclust.manager.db.DB
+import sttp.tapir.server.netty.NettyConfig
 
 
 
@@ -107,11 +108,16 @@ case class Configuration(
   val cssFrontend = staticFilesGetServerEndpoint[Identity]("css")(s"$staticPath/css/") //, options = FilesOptions.default.copy(defaultFile = Some(List("index.html"))))
 
   val endpoints = Endpoints(config.database, config.minio, config.configuration.miniclust)
+  val nettyConfig = NettyConfig.default.noGracefulShutdown
 
-  NettySyncServer()
-    .port(config.port)
-    .addEndpoints(List(indexEndpoint, cssFrontend, jsFrontend))
-    .addEndpoints(endpoints.all)
-    .startAndWait()
+
+  val server =
+    NettySyncServer(nettyConfig)
+      .port(config.port)
+      .addEndpoints(List(indexEndpoint, cssFrontend, jsFrontend))
+      .addEndpoints(endpoints.all)
+      .startAndWait()
+
+
 
   cron.stop()
