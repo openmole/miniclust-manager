@@ -107,7 +107,7 @@ object CollectAccounting:
               Field.const(_.time, o.lastModified.get)
             )
 
-       // logger.info("Insert worker activity: " + worker)
+        logger.info("Insert worker activity: " + worker)
         db.addWorkerAccounting(worker)
 //          Minio.content(minio, bucket, k)
 //          val objectIdentifiers = keys.map(k => ObjectIdentifier.builder().key(k).build())
