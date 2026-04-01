@@ -1,7 +1,9 @@
 package miniclust.manager
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Callable, Executors, ThreadFactory, TimeUnit}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, Promise, Await}
 import scala.util.*
 
 /*
@@ -22,8 +24,29 @@ import scala.util.*
  */
 
 
+class ConcurrentTask(concurrency: Int):
+  private val places = new java.util.concurrent.Semaphore(concurrency)
+  private val active = new AtomicInteger(0)
+  private val done = Promise[Unit]()
+
+  def run[T](f: => T): Future[T] =
+    active.incrementAndGet()
+    import Cron.given_ExecutionContext
+    places.acquire()
+    Future:
+      try f
+      finally
+        places.release()
+        if active.decrementAndGet() == 0
+        then done.trySuccess(())
+
+  def waitAll(timeout: Duration = Duration.Inf): Unit =
+    if active.get() > 0 then
+      Await.result(done.future, timeout)
+
+
 object Background:
-  def run(t: => Unit) =
+  def run[T](t: => T): Future[T] =
     import Cron.given_ExecutionContext
     Future(t)
 
