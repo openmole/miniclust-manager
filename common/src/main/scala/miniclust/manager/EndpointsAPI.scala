@@ -43,7 +43,7 @@ object EndpointsAPI:
 
   case class WorkersLoad(usages: Seq[WorkerUsage], timeStamps: Seq[String])
   case class WorkerUsage(name: String, id: String, usageCoresInTime: Seq[Int])
-  
+
 //
 //  val testEndpoint: PublicEndpoint[String, Unit, String, Any] =
 //    endpoint.post

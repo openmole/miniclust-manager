@@ -80,7 +80,7 @@ lazy val frontend = (project in file("frontend"))
     name := "frontend",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % tapirVersion,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-upickle" % tapirVersion,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % tapirVersion,
       "com.raquo" %%% "laminar" % "17.2.1",
       "io.circe" %%% "circe-generic" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion
