@@ -27,7 +27,23 @@ object EndpointsAPI:
 
   type SecureEndpoint[I, O] = Endpoint[Option[String], I, String, O, Any]
 
+  object MiniClustUser:
+    enum Status:
+      case enabled, disabled
+
+  case class MiniClustUser(
+    login: String,
+    status: MiniClustUser.Status,
+    name: Option[String],
+    firstName: Option[String],
+    email: Option[String],
+    institution: Option[String])
+
   case class LoginForm(username: String, password: String)
+
+  case class WorkersLoad(usages: Seq[WorkerUsage], timeStamps: Seq[String])
+  case class WorkerUsage(name: String, id: String, usageCoresInTime: Seq[Int])
+  
 //
 //  val testEndpoint: PublicEndpoint[String, Unit, String, Any] =
 //    endpoint.post
@@ -83,33 +99,3 @@ object EndpointsAPI:
       .out(stringBody)
       .errorOut(stringBody)
 
-  object MiniClustUser:
-    enum Status:
-      case enabled, disabled
-
-  case class MiniClustUser(
-    login: String,
-    status: MiniClustUser.Status,
-    name: Option[String],
-    firstName: Option[String],
-    email: Option[String],
-    institution: Option[String])
-
-  case class User(
-   name: String,
-   firstName: String,
-   login: String,
-   email: String,
-   institution: String,
-   emailStatus: String,
-   created: Long)
-
-  case class WorkersLoad(
-     usages: Seq[WorkerUsage],
-     timeStamps: Seq[String]
-     )
-
-  case class WorkerUsage(
-   name: String,
-   id: String,
-   usageCoresInTime: Seq[Int])

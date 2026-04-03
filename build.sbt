@@ -1,7 +1,7 @@
 
-def tapirVersion = "1.13.3"
-def circeVersion = "0.14.14"
-def ScalaVersion = "3.7.2"
+def tapirVersion = "1.13.14"
+def circeVersion = "0.14.15"
+def ScalaVersion = "3.7.3"
 
 def esbuildMain = s"scala-${ScalaVersion}/esbuild/main"
 
@@ -48,7 +48,7 @@ lazy val server = (project in file("server")).settings(
       "com.lihaoyi" %% "scalatags" % "0.13.1",
       "ch.epfl.lamp" %% "gears" % "0.2.0",
       "com.github.pathikrit" %% "better-files" % "3.9.2",
-      "com.github.openmole.miniclust" %% "message" % "f07604400d",
+      "com.github.openmole.miniclust" %% "message" % "cb3db5119d",
       "com.github.jwt-scala" %% "jwt-core" % "11.0.0",
       //"com.lihaoyi" %% "upickle" % "4.1.0",
       "io.github.arainko" %%% "ducktape" % "0.2.10",
@@ -80,7 +80,7 @@ lazy val frontend = (project in file("frontend"))
     name := "frontend",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % tapirVersion,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % tapirVersion,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-upickle" % tapirVersion,
       "com.raquo" %%% "laminar" % "17.2.1",
       "io.circe" %%% "circe-generic" % circeVersion,
       "io.circe" %%% "circe-parser" % circeVersion
