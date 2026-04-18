@@ -1,7 +1,7 @@
 
-def tapirVersion = "1.13.14"
+def tapirVersion = "1.13.16"
 def circeVersion = "0.14.15"
-def ScalaVersion = "3.7.3"
+def ScalaVersion = "3.8.3"
 
 def esbuildMain = s"scala-${ScalaVersion}/esbuild/main"
 
